@@ -1,0 +1,30 @@
+:root {
+  --color-bg: #F6F8FF;
+  --color-surface: #FFFFFF;
+  --color-primary: #4F6FE8;
+  --color-accent: #FF8C69;
+  --color-primary-light: #EEF2FF;
+  --color-accent-light: #FFE4DA;
+  --color-border: #C8D4F8;
+  --color-text: #1A1A2E;
+  --color-text-secondary: #6B7A99;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
