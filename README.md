@@ -35,8 +35,8 @@ cooked/
 ## Roadmap
 
 - [x] Phase 1 — Structure monorepo + schéma DB + stubs API/Web
-- [ ] Phase 1 — CRUD recettes backoffice + upload R2
-- [ ] Phase 1 — Pages publiques (accueil bento grid, catalogue, détail)
+- [x] Phase 1 — Auth admin (Better Auth) + backoffice CRUD recettes/catégories
+- [ ] Phase 1 — Upload images R2 + pages publiques (bento grid, catalogue, détail)
 - [ ] Phase 1 — Déploiement Vercel + VPS
 - [ ] Phase 2 — Auth membres, favoris, notation, commentaires
 - [ ] Phase 2 — Recherche full-text + filtres avancés

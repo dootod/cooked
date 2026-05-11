@@ -170,7 +170,27 @@ Turborepo lance l'API et le web en parallèle.
 
 ---
 
-## 7. Scripts disponibles
+## 7. Créer le compte administrateur
+
+À faire **une seule fois** après le premier `db:push`.
+
+Depuis `apps/api/` :
+
+```powershell
+node --env-file=.env --import tsx/esm src/scripts/seed-admin.ts
+```
+
+Crée l'admin par défaut :
+- **Email :** `admin@cooked.fr`
+- **Mot de passe :** `admin123456`
+
+> Pour personnaliser : `ADMIN_EMAIL=... ADMIN_PASSWORD=... node --env-file=.env --import tsx/esm src/scripts/seed-admin.ts`
+
+Accès au backoffice : **http://localhost:3000/compte/connexion** → connecte-toi → redirige vers `/admin`.
+
+---
+
+## 8. Scripts disponibles
 
 Tous ces scripts s'exécutent depuis la **racine** sauf indication contraire.
 
@@ -193,7 +213,7 @@ Scripts DB (depuis `packages/db/`) :
 
 ---
 
-## 8. Structure des fichiers importants
+## 9. Structure des fichiers importants
 
 ```
 cooked/
@@ -201,21 +221,32 @@ cooked/
 │   ├── api/
 │   │   ├── src/
 │   │   │   ├── index.ts              Point d'entrée Hono
-│   │   │   ├── routes/               Routes API (stubs à implémenter)
-│   │   │   └── middleware/           auth.ts + admin.ts
+│   │   │   ├── lib/
+│   │   │   │   ├── auth.ts           Instance Better Auth
+│   │   │   │   └── utils.ts          generateSlug()
+│   │   │   ├── routes/               Routes API publiques
+│   │   │   │   └── admin/            Routes protégées admin
+│   │   │   ├── middleware/           auth.ts + admin.ts
+│   │   │   └── scripts/
+│   │   │       └── seed-admin.ts     Création compte admin
 │   │   └── .env                      Variables d'environnement API
 │   └── web/
-│       ├── app/                      Pages Next.js (App Router)
+│       ├── app/
+│       │   ├── admin/                Backoffice (layout + pages)
+│       │   └── compte/connexion/     Page login
+│       ├── components/admin/
+│       │   └── RecipeForm.tsx        Formulaire recette (create + edit)
 │       ├── lib/
 │       │   ├── api.ts                Wrapper fetch → API Hono
-│       │   └── auth.ts               Client Better Auth
+│       │   └── auth.ts               Client Better Auth + adminClient
 │       ├── proxy.ts                  Protection routes /admin (Next.js 16)
 │       └── .env                      Variables d'environnement Web
 └── packages/
     └── db/
         ├── schema/
         │   ├── recipes.ts            Tables recettes, catégories, tags...
-        │   └── users.ts              Tables users, favoris, notes, commentaires
+        │   ├── users.ts              Tables favoris, notes, commentaires
+        │   └── auth.ts               Tables Better Auth (user, session...)
         ├── index.ts                  Export db + schéma
         ├── drizzle.config.ts         Config Drizzle Kit
         └── .env                      DATABASE_URL pour les migrations
@@ -223,7 +254,7 @@ cooked/
 
 ---
 
-## 9. Dépannage fréquent
+## 10. Dépannage fréquent
 
 ### Port déjà utilisé au démarrage
 
