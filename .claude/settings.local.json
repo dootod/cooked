@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(dir C:\\\\laragon\\\\www\\\\cooked)",
+      "PowerShell(pnpm *)",
+      "PowerShell(npm show *)",
+      "PowerShell(Get-ChildItem C:\\\\laragon\\\\www\\\\cooked -Recurse | Where-Object { $_.FullName -notmatch \"node_modules|\\\\.turbo|migrations|\\\\.next\" } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "PowerShell(taskkill *)",
+      "PowerShell(Start-Process \"http://localhost:3000\")",
+      "PowerShell(gh *)",
+      "PowerShell(netstat *)",
+      "Bash(pnpm dev *)",
+      "Read(//tmp/**)",
+      "PowerShell(try { $result = Invoke-WebRequest -Uri \"http://localhost:3001/api/auth/sign-in/email\" -Method POST -Body '{\"email\":\"admin@cooked.fr\",\"password\":\"admin123456\"}' -ContentType \"application/json\" -UseBasicParsing } catch { $_.Exception.Response.StatusCode; $reader = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $reader.ReadToEnd\\(\\) })",
+      "Bash(pkill -f \"tsx watch\")",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"node.*index.ts\")",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/api/auth/sign-in/email\" -Method POST -Body '{\"email\":\"admin@cooked.fr\",\"password\":\"admin123456\"}' -ContentType \"application/json\" -UseBasicParsing; \"Status: $\\($r.StatusCode\\)\"; $r.Content | ConvertFrom-Json | ConvertTo-Json -Depth 3 } catch { $_.Exception.Response.StatusCode; $reader = New-Object System.IO.StreamReader\\($_.Exception.Response.GetResponseStream\\(\\)\\); $reader.ReadToEnd\\(\\) })",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/compte/connexion\" -UseBasicParsing; \"Login page: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"Connexion\"\\) { \"Content OK\" })",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/admin\" -UseBasicParsing; \"Admin page: $\\($r.StatusCode\\)\")",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000/admin/recettes\" -UseBasicParsing; \"Recettes: $\\($r.StatusCode\\)\"; $r2 = Invoke-WebRequest -Uri \"http://localhost:3000/admin/recettes/nouveau\" -UseBasicParsing; \"Nouveau: $\\($r2.StatusCode\\)\")",
+      "Bash(pnpm typecheck *)",
+      "Bash(git add *)"
+    ]
+  }
+}

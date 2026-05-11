@@ -3,10 +3,11 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
+import { auth } from "./lib/auth.js";
+import adminCategoriesRoutes from "./routes/admin/categories.js";
 import adminCommentsRoutes from "./routes/admin/comments.js";
 import adminRecipesRoutes from "./routes/admin/recipes.js";
 import adminUsersRoutes from "./routes/admin/users.js";
-import authRoutes from "./routes/auth.js";
 import categoriesRoutes from "./routes/categories.js";
 import meRoutes from "./routes/me.js";
 import recipesRoutes from "./routes/recipes.js";
@@ -25,12 +26,15 @@ app.use(
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
+// Better Auth handles all /api/auth/* routes
+app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
+
 app.route("/api/recipes", recipesRoutes);
 app.route("/api/categories", categoriesRoutes);
 app.route("/api/tags", tagsRoutes);
-app.route("/api/auth", authRoutes);
 app.route("/api/me", meRoutes);
 app.route("/api/admin/recipes", adminRecipesRoutes);
+app.route("/api/admin/categories", adminCategoriesRoutes);
 app.route("/api/admin/comments", adminCommentsRoutes);
 app.route("/api/admin/users", adminUsersRoutes);
 

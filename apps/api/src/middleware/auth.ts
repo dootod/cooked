@@ -1,11 +1,12 @@
 import type { Context, Next } from "hono";
-import { getCookie } from "hono/cookie";
+import { auth } from "../lib/auth.js";
 
 export async function authMiddleware(c: Context, next: Next) {
-  const token = getCookie(c, "auth-token");
-  if (!token) {
+  const session = await auth.api.getSession({ headers: c.req.raw.headers });
+  if (!session) {
     return c.json({ error: "Unauthorized" }, 401);
   }
-  // TODO: verify JWT and attach user to context
+  c.set("user", session.user);
+  c.set("session", session.session);
   await next();
 }

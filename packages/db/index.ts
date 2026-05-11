@@ -8,3 +8,4 @@ export { schema };
 
 export * from "./schema/recipes.js";
 export * from "./schema/users.js";
+export * from "./schema/auth.js";
