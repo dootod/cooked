@@ -21,7 +21,7 @@ interface RecipeFormProps {
 
 const DIFFICULTY_OPTIONS = [
   { value: "easy", label: "Facile" },
-  { value: "intermediate", label: "Intermédiaire" },
+  { value: "intermediate", label: "Intermediaire" },
   { value: "hard", label: "Difficile" },
 ] as const;
 
@@ -197,7 +197,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
       }
       router.push("/admin/recettes");
     } catch {
-      setError("Une erreur est survenue. Vérifiez que le slug est unique.");
+      setError("Une erreur est survenue. Verifiez que le slug est unique.");
     }
 
     setLoading(false);
@@ -212,7 +212,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-[820px]">
+    <form onSubmit={handleSubmit} className="max-w-[960px] mx-auto">
       {error && (
         <div className="mb-6 px-4 py-3 text-[14px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
@@ -241,23 +241,23 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
             <p className="text-[11px] text-text-tertiary mt-1.5 font-mono">/recettes/{slug || "..."}</p>
           </Field>
           <Field label="Description">
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Décrivez brièvement la recette..." className={`${inputClass} resize-y`} />
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Decrivez brievement la recette..." className={`${inputClass} resize-y`} />
           </Field>
-          <Field label="Vidéo (URL YouTube / Vimeo)">
+          <Field label="Video (URL YouTube / Vimeo)">
             <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className={inputClass} />
           </Field>
         </div>
       </Section>
 
-      {/* Détails */}
-      <Section title="Détails" icon={
+      {/* Details */}
+      <Section title="Details" icon={
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
       }>
-        <div className="grid grid-cols-4 gap-3 mb-4">
-          <Field label="Prép. (min)">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <Field label="Prep. (min)">
             <input type="number" min={0} value={prepTime} onChange={(e) => setPrepTime(e.target.value)} placeholder="15" className={inputClass} />
           </Field>
           <Field label="Cuisson (min)">
@@ -266,7 +266,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           <Field label="Portions">
             <input type="number" min={1} value={servings} onChange={(e) => setServings(e.target.value)} className={inputClass} />
           </Field>
-          <Field label="Difficulté">
+          <Field label="Difficulte">
             <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as "easy" | "intermediate" | "hard")} className={selectClass}>
               {DIFFICULTY_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -275,9 +275,9 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           </Field>
         </div>
         <Field label="Statut">
-          <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")} className={`${selectClass} max-w-[200px]`}>
+          <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")} className={`${selectClass} sm:max-w-[240px]`}>
             <option value="draft">Brouillon</option>
-            <option value="published">Publié</option>
+            <option value="published">Publie</option>
           </select>
         </Field>
       </Section>
@@ -289,11 +289,11 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         </svg>
       }>
         <p className="text-[11px] text-text-tertiary mb-3">Valeurs par portion</p>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Field label="Kcal">
             <input type="number" min={0} value={macroKcal} onChange={(e) => setMacroKcal(e.target.value)} placeholder="450" className={inputClass} />
           </Field>
-          <Field label="Protéines (g)">
+          <Field label="Proteines (g)">
             <input type="number" min={0} value={macroProtein} onChange={(e) => setMacroProtein(e.target.value)} placeholder="25" className={inputClass} />
           </Field>
           <Field label="Glucides (g)">
@@ -305,53 +305,81 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         </div>
       </Section>
 
-      {/* Ingrédients */}
-      <Section title="Ingrédients" icon={
+      {/* Ingredients */}
+      <Section title="Ingredients" icon={
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z" />
           <path d="M6 9.01V9" />
           <path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19" />
         </svg>
       }>
-        <div className="space-y-2">
-          <div className="grid grid-cols-[3fr_1fr_1fr_2fr_36px] gap-2">
-            {["Ingrédient", "Qté", "Unité", "Note", ""].map((h) => (
+        <div className="space-y-3">
+          {/* Column headers — desktop only */}
+          <div className="hidden lg:grid grid-cols-[3fr_1fr_1fr_2fr_40px] gap-3">
+            {["Ingredient", "Qte", "Unite", "Note", ""].map((h) => (
               <span key={h} className="text-[10px] font-bold tracking-[0.08em] uppercase text-text-tertiary">{h}</span>
             ))}
           </div>
+
           {ingredients.map((ing, i) => (
-            <div key={i} className="grid grid-cols-[3fr_1fr_1fr_2fr_36px] gap-2 items-center">
-              <input type="text" value={ing.name} onChange={(e) => updateIngredient(i, "name", e.target.value)} placeholder="farine" className={inputClass} />
-              <input type="text" value={ing.quantity} onChange={(e) => updateIngredient(i, "quantity", e.target.value)} placeholder="200" className={inputClass} />
-              <input type="text" value={ing.unit} onChange={(e) => updateIngredient(i, "unit", e.target.value)} placeholder="g" className={inputClass} />
-              <input type="text" value={ing.note} onChange={(e) => updateIngredient(i, "note", e.target.value)} placeholder="tamisée" className={inputClass} />
-              <button
-                type="button"
-                onClick={() => removeIngredient(i)}
-                className="w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
+            <div key={i} className="relative">
+              {/* Desktop: single row */}
+              <div className="hidden lg:grid grid-cols-[3fr_1fr_1fr_2fr_40px] gap-3 items-center">
+                <input type="text" value={ing.name} onChange={(e) => updateIngredient(i, "name", e.target.value)} placeholder="Farine" className={inputClass} />
+                <input type="text" value={ing.quantity} onChange={(e) => updateIngredient(i, "quantity", e.target.value)} placeholder="200" className={inputClass} />
+                <input type="text" value={ing.unit} onChange={(e) => updateIngredient(i, "unit", e.target.value)} placeholder="g" className={inputClass} />
+                <input type="text" value={ing.note} onChange={(e) => updateIngredient(i, "note", e.target.value)} placeholder="tamisee" className={inputClass} />
+                <button
+                  type="button"
+                  onClick={() => removeIngredient(i)}
+                  className="w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Mobile/tablet: stacked card */}
+              <div className="lg:hidden admin-glass rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wide">Ingredient {i + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeIngredient(i)}
+                    className="w-8 h-8 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <input type="text" value={ing.name} onChange={(e) => updateIngredient(i, "name", e.target.value)} placeholder="Nom (ex: Farine)" className={inputClass} />
+                <div className="grid grid-cols-2 gap-3">
+                  <input type="text" value={ing.quantity} onChange={(e) => updateIngredient(i, "quantity", e.target.value)} placeholder="Quantite (200)" className={inputClass} />
+                  <input type="text" value={ing.unit} onChange={(e) => updateIngredient(i, "unit", e.target.value)} placeholder="Unite (g)" className={inputClass} />
+                </div>
+                <input type="text" value={ing.note} onChange={(e) => updateIngredient(i, "note", e.target.value)} placeholder="Note (ex: tamisee)" className={inputClass} />
+              </div>
             </div>
           ))}
         </div>
         <button
           type="button"
           onClick={addIngredient}
-          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
+          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Ajouter un ingrédient
+          Ajouter un ingredient
         </button>
       </Section>
 
-      {/* Étapes */}
-      <Section title="Étapes" icon={
+      {/* Etapes */}
+      <Section title="Etapes" icon={
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="8" y1="6" x2="21" y2="6" />
           <line x1="8" y1="12" x2="21" y2="12" />
@@ -361,23 +389,25 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           <line x1="3" y1="18" x2="3.01" y2="18" />
         </svg>
       }>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {steps.map((step, i) => (
-            <div key={i} className="grid grid-cols-[40px_1fr_36px] gap-3 items-start">
-              <div className="w-8 h-8 mt-1.5 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-[12px] font-bold shadow-[0_2px_8px_rgba(79,111,232,0.25)]">
+            <div key={i} className="flex gap-3 items-start">
+              <div className="w-9 h-9 mt-1 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-[12px] font-bold shadow-[0_2px_8px_rgba(79,111,232,0.25)] shrink-0">
                 {i + 1}
               </div>
-              <textarea
-                value={step.content}
-                onChange={(e) => updateStep(i, e.target.value)}
-                rows={2}
-                placeholder={`Description de l'étape ${i + 1}...`}
-                className={`${inputClass} resize-y`}
-              />
+              <div className="flex-1">
+                <textarea
+                  value={step.content}
+                  onChange={(e) => updateStep(i, e.target.value)}
+                  rows={3}
+                  placeholder={`Description de l'etape ${i + 1}...`}
+                  className={`${inputClass} resize-y`}
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => removeStep(i)}
-                className="mt-1.5 w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                className="mt-1 w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer shrink-0"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -390,26 +420,26 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         <button
           type="button"
           onClick={addStep}
-          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
+          className="mt-4 inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Ajouter une étape
+          Ajouter une etape
         </button>
       </Section>
 
       {/* Actions */}
-      <div className="flex gap-3 mt-2">
+      <div className="flex flex-col sm:flex-row gap-3 mt-2">
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_20px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_30px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+          className="inline-flex items-center justify-center gap-2 px-7 py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_20px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_30px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
           {loading && (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           )}
-          {loading ? "Enregistrement..." : isEditing ? "Enregistrer les modifications" : "Créer la recette"}
+          {loading ? "Enregistrement..." : isEditing ? "Enregistrer les modifications" : "Creer la recette"}
         </button>
         <button
           type="button"
@@ -425,7 +455,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="mb-5 admin-glass rounded-2xl p-6">
+    <div className="mb-6 admin-glass rounded-xl p-5 sm:p-6">
       <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/30">
         <span className="text-primary">{icon}</span>
         <h2 className="text-[15px] font-bold text-text">{title}</h2>

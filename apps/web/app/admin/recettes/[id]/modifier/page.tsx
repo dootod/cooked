@@ -13,7 +13,7 @@ export default function ModifierRecettePage({
 
   return (
     <div className="admin-fade-up">
-      <div className="mb-7">
+      <div className="max-w-[960px] mx-auto mb-7">
         <Link
           href="/admin/recettes"
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-text-tertiary hover:text-primary transition-colors mb-3 group"

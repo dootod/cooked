@@ -65,7 +65,7 @@ export default function AdminCategoriesPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Supprimer la catégorie « ${name} » ?`)) return;
+    if (!confirm(`Supprimer la categorie « ${name} » ?`)) return;
     await api.delete(`/api/admin/categories/${id}`);
     setCategories((prev) => prev.filter((c) => c.id !== id));
   }
@@ -83,11 +83,11 @@ export default function AdminCategoriesPage() {
   return (
     <div className="admin-fade-up">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-[28px] font-bold text-text tracking-tight">Catégories</h1>
+          <h1 className="text-[28px] font-bold text-text tracking-tight">Categories</h1>
           <p className="mt-1 text-[14px] text-text-secondary">
-            {categories.length} catégorie{categories.length !== 1 ? "s" : ""}
+            {categories.length} categorie{categories.length !== 1 ? "s" : ""}
           </p>
         </div>
         {!creating && (
@@ -98,21 +98,21 @@ export default function AdminCategoriesPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
-            Nouvelle catégorie
+            Nouvelle categorie
           </button>
         )}
       </div>
 
       {/* Create form */}
       {creating && (
-        <div className="mb-5 admin-glass rounded-2xl p-6 ring-2 ring-primary/20">
-          <h2 className="text-[14px] font-semibold text-text mb-4">Nouvelle catégorie</h2>
+        <div className="mb-5 admin-glass rounded-xl p-5 ring-2 ring-primary/20">
+          <h2 className="text-[14px] font-semibold text-text mb-4">Nouvelle categorie</h2>
           <form onSubmit={handleCreate} className="space-y-3">
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Nom de la catégorie (ex: Plat principal)"
+              placeholder="Nom (ex: Plat principal)"
               required
               autoFocus
               className={inputClass}
@@ -133,7 +133,7 @@ export default function AdminCategoriesPage() {
                 disabled={saving}
                 className="px-5 py-2 bg-gradient-to-r from-primary to-primary/90 text-white text-[13px] font-semibold rounded-xl shadow-[0_4px_12px_rgba(79,111,232,0.25)] hover:shadow-[0_8px_20px_rgba(79,111,232,0.35)] transition-all disabled:opacity-60 cursor-pointer"
               >
-                {saving ? "..." : "Créer"}
+                {saving ? "..." : "Creer"}
               </button>
               <button
                 type="button"
@@ -155,27 +155,27 @@ export default function AdminCategoriesPage() {
           ))}
         </div>
       ) : categories.length === 0 && !creating ? (
-        <div className="admin-glass rounded-2xl text-center py-20 px-8">
-          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="mx-auto mb-6">
+        <div className="admin-glass rounded-xl text-center py-16 px-8">
+          <svg width="64" height="64" viewBox="0 0 80 80" fill="none" className="mx-auto mb-5 opacity-60">
             <rect x="8" y="12" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" />
             <rect x="44" y="12" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
             <rect x="8" y="44" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
             <rect x="44" y="44" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" strokeDasharray="4 3" />
             <path d="M58 52v14M51 59h14" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <h3 className="text-lg font-semibold text-text mb-2">Aucune catégorie</h3>
-          <p className="text-sm text-text-secondary mb-6">Commencez par en créer une.</p>
+          <h3 className="text-[16px] font-semibold text-text mb-1.5">Aucune categorie</h3>
+          <p className="text-[13px] text-text-secondary mb-5">Commencez par en creer une.</p>
           <button
             onClick={() => setCreating(true)}
-            className="px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-sm font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_24px_rgba(79,111,232,0.4)] transition-all cursor-pointer"
+            className="px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-[13px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_24px_rgba(79,111,232,0.4)] transition-all cursor-pointer"
           >
-            Créer une catégorie
+            Creer une categorie
           </button>
         </div>
       ) : (
-        <div className="admin-glass rounded-2xl overflow-hidden divide-y divide-border/20">
+        <div className="admin-glass rounded-xl overflow-hidden divide-y divide-border/15">
           {categories.map((cat) => (
-            <div key={cat.id} className="px-6 py-4 group hover:bg-primary/[0.02] transition-colors">
+            <div key={cat.id} className="px-5 py-3.5 group hover:bg-primary/[0.02] transition-colors">
               {editingId === cat.id ? (
                 <div className="space-y-3">
                   <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className={inputClass} autoFocus />
@@ -191,28 +191,28 @@ export default function AdminCategoriesPage() {
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
                         <path d="M7 7h.01" />
                       </svg>
                     </div>
-                    <div>
-                      <span className="text-[14px] font-medium text-text">{cat.name}</span>
+                    <div className="min-w-0">
+                      <span className="text-[13px] font-medium text-text">{cat.name}</span>
                       {cat.description && (
-                        <p className="text-[12px] text-text-secondary mt-0.5">{cat.description}</p>
+                        <p className="text-[11px] text-text-secondary mt-0.5 truncate">{cat.description}</p>
                       )}
-                      <span className="text-[11px] text-text-tertiary font-mono">/{cat.slug}</span>
+                      <span className="text-[10px] text-text-tertiary font-mono">/{cat.slug}</span>
                     </div>
                   </div>
-                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 shrink-0 ml-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => { setEditingId(cat.id); setEditName(cat.name); setEditDescription(cat.description ?? ""); }}
                       className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-primary hover:bg-primary/8 transition-all cursor-pointer"
                       title="Modifier"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
@@ -222,7 +222,7 @@ export default function AdminCategoriesPage() {
                       className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
                       title="Supprimer"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" />
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                       </svg>

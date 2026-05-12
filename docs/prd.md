@@ -106,8 +106,8 @@ La barre de recherche est accessible depuis toutes les pages via le header.
 
 ### 3.3 Compte membre
 
-- Inscription par email + mot de passe (confirmation par email via Resend)
-- Connexion avec JWT stocké en cookie httpOnly
+- Inscription par email + mot de passe via Better Auth (`signUp.email`)
+- Connexion via Better Auth (`signIn.email`), session gérée côté serveur
 - Page profil : modifier pseudo, avatar, mot de passe
 - Favoris : liste de recettes sauvegardées
 - Notation : étoiles 1 à 5, une note par utilisateur par recette (note moyenne visible publiquement)
@@ -151,7 +151,7 @@ cooked/  (monorepo)
 |---|---|---|---|
 | **Runtime** | Node.js | 24 LTS | Active LTS, supporté jusqu'en avril 2028 |
 | **Monorepo** | Turborepo | 2.x | Build system Rust, caching intelligent, workspace pnpm |
-| **Package manager** | pnpm | 10.x | Workspaces monorepo, plus rapide et léger que npm |
+| **Package manager** | pnpm | 11.x | Workspaces monorepo, plus rapide et léger que npm |
 | **API** | Node.js + Hono | 4.12.x | Ultra-léger, moderne, full TypeScript, excellent support Claude Code |
 | **Frontend public** | Next.js 16 (App Router) | 16.x | SSR + SSG pour SEO optimal, déployable gratuitement sur Vercel |
 | **Backoffice** | Next.js 16 — route `/admin` | 16.x | Même stack que le front, pas de dépôt supplémentaire à gérer |
@@ -191,16 +191,17 @@ cooked/
 │   │   │   │   ├── recipes.ts        ← GET /api/recipes, GET /api/recipes/:slug
 │   │   │   │   ├── categories.ts
 │   │   │   │   ├── tags.ts
-│   │   │   │   ├── auth.ts           ← register, login, refresh
 │   │   │   │   ├── me.ts             ← profil, favoris, liste de courses
 │   │   │   │   └── admin/
 │   │   │   │       ├── recipes.ts    ← CRUD admin
 │   │   │   │       ├── comments.ts   ← modération
 │   │   │   │       └── users.ts
+│   │   │   ├── lib/
+│   │   │   │   └── auth.ts           ← config Better Auth (adapter Drizzle, plugin admin)
 │   │   │   ├── middleware/
-│   │   │   │   ├── auth.ts           ← vérification JWT
+│   │   │   │   ├── auth.ts           ← vérification session Better Auth
 │   │   │   │   └── admin.ts          ← vérification rôle admin
-│   │   │   └── index.ts              ← point d'entrée Hono
+│   │   │   └── index.ts              ← point d'entrée Hono (catch-all /api/auth/** → Better Auth)
 │   │   └── package.json
 │   │
 │   └── web/                          ← Next.js 16 (public + backoffice)
@@ -212,7 +213,11 @@ cooked/
 │       │   ├── compte/
 │       │   └── admin/
 │       ├── components/
+│       │   └── admin/
+│       │       └── RecipeForm.tsx     ← formulaire recette (création + édition)
 │       ├── lib/
+│       │   ├── api.ts                ← wrapper fetch → API Hono
+│       │   └── auth.ts               ← client Better Auth (signIn, signUp, signOut, useSession)
 │       └── proxy.ts                  ← protection routes /admin
 │
 └── packages/
@@ -220,6 +225,7 @@ cooked/
         ├── schema/
         │   ├── recipes.ts
         │   ├── users.ts
+        │   ├── auth.ts              ← tables Better Auth (user, session, account, verification)
         │   └── index.ts
         ├── migrations/
         └── index.ts
@@ -241,7 +247,11 @@ cooked/
 | `macros` | id, recipeId, kcal, protein, carbs, fat |
 | `medias` | id, recipeId, url, alt, isPrimary |
 | `equipment` | id, name, iconSlug → lié à recipes (many-to-many) |
-| `users` | id, email, passwordHash, username, avatar, role, createdAt |
+| `user` | id, name, email, emailVerified, image, role, banned, banReason, banExpires, createdAt, updatedAt *(table Better Auth)* |
+| `session` | id, expiresAt, token, userId, ipAddress, userAgent, impersonatedBy *(Better Auth)* |
+| `account` | id, accountId, providerId, userId, accessToken, refreshToken, password *(Better Auth)* |
+| `verification` | id, identifier, value, expiresAt *(Better Auth)* |
+| `users` | id, email, passwordHash, username, avatar, role, suspended, createdAt *(table applicative legacy — non utilisée actuellement)* |
 | `favorites` | userId, recipeId, createdAt |
 | `ratings` | id, userId, recipeId, score (1–5), createdAt — unique par couple |
 | `comments` | id, userId, recipeId, content, status (pending/approved/rejected), createdAt |
@@ -270,9 +280,10 @@ Membre poste → status: pending
 | `GET` | `/api/recipes/:slug` | Détail d'une recette |
 | `GET` | `/api/categories` | Liste des catégories |
 | `GET` | `/api/tags` | Liste des tags |
-| `POST` | `/api/auth/register` | Création de compte |
-| `POST` | `/api/auth/login` | Authentification → JWT |
-| `POST` | `/api/auth/refresh` | Renouvellement du token |
+| `POST` | `/api/auth/sign-up/email` | Création de compte *(Better Auth)* |
+| `POST` | `/api/auth/sign-in/email` | Authentification *(Better Auth)* |
+| `GET` | `/api/auth/get-session` | Session courante *(Better Auth)* |
+| `POST` | `/api/auth/sign-out` | Déconnexion *(Better Auth)* |
 
 ### Membres (JWT requis)
 
@@ -360,15 +371,17 @@ Le backoffice utilise un design distinct du site public, orienté productivité 
 
 | Élément | Détail |
 |---|---|
-| **Sidebar** | Fond dark (`#0F1629`), barre gradient animée en haut (indigo → pêche → violet), orbe ambient en blur, indicateur actif = barre gradient verticale à gauche |
-| **Fond principal** | Grille de points (dot-grid) sur fond `#F6F8FF` |
-| **Cards** | Glassmorphism — `backdrop-blur(20px)`, fond blanc semi-transparent 70%, bordure indigo pâle 30% |
-| **KPIs** | Ring charts SVG avec progression animée, icônes SVG dans conteneurs colorés |
-| **Actions rapides** | Cards glass avec icônes gradient (indigo, pêche, violet), effet scale-up au hover |
-| **Tables** | Barre de couleur verticale à gauche par ligne (vert = publié, orange = brouillon), boutons d'action en icônes au hover |
-| **Formulaires** | Sections glass avec en-tête icône SVG + titre, inputs avec focus ring primary, numéros d'étapes en cercles gradient |
+| **Sidebar** | Fond dark (`#0F1629`), barre gradient animée en haut (indigo → pêche → violet), orbe ambient en blur, indicateur actif = barre gradient verticale à gauche. Responsive : overlay mobile avec backdrop blur, hamburger menu |
+| **Fond principal** | Grille de points (dot-grid) sur fond `#F6F8FF`, orbes de couleur flottants en arrière-plan |
+| **Cards** | Glassmorphism — `backdrop-blur(20px)`, fond blanc semi-transparent 75%, bordure indigo pâle 30%. Glow effect au hover avec ombre dynamique et translation Y -2px |
+| **KPIs** | Ring charts SVG avec filtre glow (`feGaussianBlur`), compteurs animés (ease-out cubic), 4 cards : total, publiées, brouillons, catégories |
+| **Actions rapides** | Cards glow avec icônes gradient (indigo, pêche, violet), effet scale-up au hover, flèche directionnelle animée |
+| **Recettes récentes** | Mini-liste avec barre de statut colorée, lien vers édition, date formatée |
+| **Status plateforme** | Indicateurs en temps réel (API, DB, Auth, Stockage, Emails) avec points de statut pulsants |
+| **Tables** | Barre de couleur verticale à gauche par ligne (vert = publié, orange = brouillon), boutons d'action toujours visibles sur mobile, au hover sur desktop. Scroll horizontal sur petits écrans |
+| **Formulaires** | Sections glass avec en-tête icône SVG + titre, inputs avec focus ring primary, numéros d'étapes en cercles gradient. Grilles adaptatives (4 → 2 colonnes sur mobile) |
 | **États vides** | Illustrations SVG géométriques custom (pas d'emojis), lignes indigo + pêche |
-| **Animations** | Fade-up à l'entrée de page, hover glow/lift sur les cards, gradient flow continu sur la barre sidebar |
+| **Animations** | Fade-up à l'entrée de page, hover glow/lift sur les cards, gradient flow continu sur la barre sidebar, shimmer effects, text gradient animé |
 | **Icônes** | SVG inline partout — aucun emoji utilisé dans l'interface admin |
 
 ---
@@ -382,8 +395,8 @@ Le backoffice utilise un design distinct du site public, orienté productivité 
 | `/recettes/[slug]` | Détail — photo hero, macros, ingrédients, étapes, matériel, vidéo, notes, commentaires |
 | `/categories/[slug]` | Bento grid filtré par catégorie |
 | `/tags/[slug]` | Bento grid filtré par tag |
-| `/compte/connexion` | Formulaire de connexion |
-| `/compte/inscription` | Formulaire d'inscription |
+| `/compte/connexion` | Connexion — split-screen : panneau décoratif dark (mesh gradients, branding) + formulaire |
+| `/compte/inscription` | Inscription — split-screen identique, champs nom/email/password/confirm, validation frontend |
 | `/compte/profil` | Profil membre — favoris, historique, paramètres |
 | `/compte/favoris` | Bento grid des recettes favorites |
 | `/compte/liste-de-courses` | Liste de courses en cours |
@@ -421,16 +434,20 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - [x] Schéma Drizzle + migrations PostgreSQL
 - [x] API Hono : routes recettes publiques + admin CRUD (recettes, catégories)
 - [x] Auth Better Auth : email/password + plugin admin, middleware auth + admin
+- [x] Better Auth catch-all handler (`/api/auth/**`) — sign-up, sign-in, session, sign-out
 - [x] Backoffice : dashboard KPIs, CRUD recettes (formulaire complet), CRUD catégories, modération, utilisateurs
-- [x] Backoffice design : dark sidebar, glassmorphism, dot-grid, ring charts, SVG icons, animations
+- [x] Backoffice design : dark sidebar, glassmorphism, dot-grid, ring charts, SVG icons, animations futuristes
+- [x] Dashboard futuriste : compteurs animés, glow effects, ring charts SVG avec filtre glow, status plateforme, recettes récentes
 - [x] Tailwind CSS v4 intégré via @tailwindcss/postcss
+- [x] Pages connexion et inscription — design split-screen (panneau décoratif + formulaire)
+- [x] Responsive complet : sidebar mobile avec overlay, grilles adaptatives, tables avec scroll horizontal
 - [ ] Next.js : accueil bento grid, catalogue, détail recette (pages publiques)
 - [ ] Upload images vers Cloudflare R2
 - [ ] Déploiement Vercel + VPS
 
 ### Phase 2 — Membres
-- Comptes utilisateurs (inscription, connexion, profil) via Better Auth
-- Emails transactionnels via Resend
+- Pages profil et favoris (frontend)
+- Emails transactionnels via Resend (confirmation inscription, etc.)
 - Favoris
 - Notation des recettes (visible publiquement)
 - Commentaires + modération a priori
