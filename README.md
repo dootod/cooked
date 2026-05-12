@@ -34,14 +34,20 @@ cooked/
 
 ## Roadmap
 
-- [x] Phase 1 — Structure monorepo + schéma DB + stubs API/Web
-- [x] Phase 1 — Auth admin (Better Auth) + backoffice CRUD recettes/catégories
-- [ ] Phase 1 — Upload images R2 + pages publiques (bento grid, catalogue, détail)
-- [ ] Phase 1 — Déploiement Vercel + VPS
-- [ ] Phase 2 — Auth membres, favoris, notation, commentaires
-- [ ] Phase 2 — Recherche full-text + filtres avancés
+- [x] Phase 1 — Structure monorepo + schema DB + stubs API/Web
+- [x] Phase 1 — Auth admin (Better Auth) + backoffice CRUD recettes/categories
+- [x] Phase 1 — Pages connexion/inscription (split-screen design)
+- [x] Phase 1 — Dashboard technique (KPIs, plateforme, stack)
+- [x] Phase 1 — Gestion utilisateurs (fetch Better Auth, ban/role)
+- [x] Phase 1 — Moderation commentaires fonctionnelle (approve/reject)
+- [x] Phase 1 — Responsive complet (sidebar mobile, tables/cards adaptatives, formulaires)
+- [ ] Phase 1 — Pages publiques (accueil bento grid, catalogue, detail recette)
+- [ ] Phase 1 — Upload images Cloudflare R2
+- [ ] Phase 1 — Deploiement Vercel + VPS
+- [ ] Phase 2 — Favoris, notation, commentaires membres
+- [ ] Phase 2 — Recherche full-text + filtres avances
 - [ ] Phase 3 — Liste de courses PDF, analytics backoffice
-- [ ] Phase 4 — i18n, API publique documentée, app mobile
+- [ ] Phase 4 — i18n, API publique documentee, app mobile
 
 ## Documentation
 

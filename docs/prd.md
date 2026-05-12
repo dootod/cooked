@@ -306,8 +306,9 @@ Membre poste → status: pending
 | `DELETE` | `/api/admin/recipes/:id` | Supprimer une recette |
 | `GET` | `/api/admin/comments` | File de modération (status=pending) |
 | `PATCH` | `/api/admin/comments/:id` | Approuver ou rejeter un commentaire |
-| `GET` | `/api/admin/users` | Liste des membres |
-| `PATCH` | `/api/admin/users/:id` | Suspendre / modifier un membre |
+| `GET` | `/api/admin/users` | Liste des membres (table Better Auth `user`) |
+| `GET` | `/api/admin/users/stats` | Nombre total d'utilisateurs + sessions actives |
+| `PATCH` | `/api/admin/users/:id` | Changer rôle / bannir un membre |
 
 ---
 
@@ -374,12 +375,12 @@ Le backoffice utilise un design distinct du site public, orienté productivité 
 | **Sidebar** | Fond dark (`#0F1629`), barre gradient animée en haut (indigo → pêche → violet), orbe ambient en blur, indicateur actif = barre gradient verticale à gauche. Responsive : overlay mobile avec backdrop blur, hamburger menu |
 | **Fond principal** | Grille de points (dot-grid) sur fond `#F6F8FF`, orbes de couleur flottants en arrière-plan |
 | **Cards** | Glassmorphism — `backdrop-blur(20px)`, fond blanc semi-transparent 75%, bordure indigo pâle 30%. Glow effect au hover avec ombre dynamique et translation Y -2px |
-| **KPIs** | Ring charts SVG avec filtre glow (`feGaussianBlur`), compteurs animés (ease-out cubic), 4 cards : total, publiées, brouillons, catégories |
-| **Actions rapides** | Cards glow avec icônes gradient (indigo, pêche, violet), effet scale-up au hover, flèche directionnelle animée |
-| **Recettes récentes** | Mini-liste avec barre de statut colorée, lien vers édition, date formatée |
-| **Status plateforme** | Indicateurs en temps réel (API, DB, Auth, Stockage, Emails) avec points de statut pulsants |
-| **Tables** | Barre de couleur verticale à gauche par ligne (vert = publié, orange = brouillon), boutons d'action toujours visibles sur mobile, au hover sur desktop. Scroll horizontal sur petits écrans |
-| **Formulaires** | Sections glass avec en-tête icône SVG + titre, inputs avec focus ring primary, numéros d'étapes en cercles gradient. Grilles adaptatives (4 → 2 colonnes sur mobile) |
+| **KPIs** | 6 compteurs compacts animés (ease-out cubic) : recettes, publiées, brouillons, catégories, utilisateurs, sessions actives |
+| **Recettes récentes** | Mini-liste avec barre de statut colorée, difficulté, temps total, lien vers édition |
+| **Plateforme** | Statuts services (API, PostgreSQL, Better Auth, Stockage R2, Emails Resend) avec indicateur vert/ambre |
+| **Stack technique** | Panel récapitulatif des versions (Next.js, Hono, Drizzle, Better Auth, Turborepo, Tailwind) |
+| **Tables** | Desktop : table classique avec barre de couleur à gauche (vert = publié, orange = brouillon), actions au hover. Mobile : cards empilées avec actions en footer. Pas de scroll horizontal |
+| **Formulaires** | Sections glass avec en-tête icône SVG + titre, inputs avec focus ring primary, numéros d'étapes en cercles gradient. Grilles adaptatives (4 → 2 → 1 colonnes). Ingrédients : table desktop, cards empilées mobile |
 | **États vides** | Illustrations SVG géométriques custom (pas d'emojis), lignes indigo + pêche |
 | **Animations** | Fade-up à l'entrée de page, hover glow/lift sur les cards, gradient flow continu sur la barre sidebar, shimmer effects, text gradient animé |
 | **Icônes** | SVG inline partout — aucun emoji utilisé dans l'interface admin |
