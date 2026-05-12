@@ -21,9 +21,10 @@ const difficultyLabel: Record<string, string> = {
   hard: "Difficile",
 };
 
-const statusLabel: Record<string, string> = {
-  draft: "Brouillon",
-  published: "Publié",
+const difficultyColor: Record<string, string> = {
+  easy: "text-primary bg-primary/8",
+  intermediate: "text-amber-600 bg-amber-50",
+  hard: "text-red-500 bg-red-50",
 };
 
 export default function AdminRecettesPage() {
@@ -59,93 +60,59 @@ export default function AdminRecettesPage() {
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+    <div className="admin-fade-up">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: 30,
-              fontWeight: 700,
-              color: "var(--color-text)",
-            }}
-          >
-            Recettes
-          </h1>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginTop: 4 }}>
+          <h1 className="text-[28px] font-bold text-text tracking-tight">Recettes</h1>
+          <p className="mt-1 text-[14px] text-text-secondary">
             {recipes.length} recette{recipes.length !== 1 ? "s" : ""}
           </p>
         </div>
         <Link
           href="/admin/recettes/nouveau"
-          style={{
-            background: "var(--color-primary)",
-            color: "white",
-            padding: "10px 20px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-[13px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_28px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200"
         >
-          + Nouvelle recette
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Nouvelle recette
         </Link>
       </div>
 
+      {/* Content */}
       {loading ? (
-        <p style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Chargement...</p>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-[72px] rounded-xl bg-white/40 animate-pulse" />
+          ))}
+        </div>
       ) : recipes.length === 0 ? (
-        <div
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 10,
-            padding: 48,
-            textAlign: "center",
-          }}
-        >
-          <p style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>
-            Aucune recette pour l&apos;instant.
-          </p>
+        <div className="admin-glass rounded-2xl text-center py-20 px-8">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="mx-auto mb-6">
+            <rect x="15" y="10" width="50" height="60" rx="6" stroke="#4F6FE8" strokeWidth="1.5" />
+            <line x1="25" y1="25" x2="55" y2="25" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="25" y1="35" x2="50" y2="35" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="25" y1="45" x2="45" y2="45" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="57" cy="57" r="14" stroke="#FF8C69" strokeWidth="1.5" />
+            <path d="M57 50v14M50 57h14" stroke="#FF8C69" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <h3 className="text-lg font-semibold text-text mb-2">Aucune recette</h3>
+          <p className="text-sm text-text-secondary mb-6">Commencez par créer votre première recette.</p>
           <Link
             href="/admin/recettes/nouveau"
-            style={{
-              display: "inline-block",
-              marginTop: 16,
-              color: "var(--color-primary)",
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-sm font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_24px_rgba(79,111,232,0.4)] transition-all"
           >
-            Créer la première recette
+            Créer une recette
           </Link>
         </div>
       ) : (
-        <div
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="admin-glass rounded-2xl overflow-hidden">
+          <table className="w-full">
             <thead>
-              <tr style={{ background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
-                {["Titre", "Statut", "Difficulté", "Temps total", "Actions"].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "left",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--color-text-secondary)",
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                    }}
-                  >
+              <tr className="border-b border-border/30">
+                {["Titre", "Statut", "Difficulté", "Temps", ""].map((h) => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[10px] font-bold tracking-[0.08em] uppercase text-text-tertiary">
                     {h}
                   </th>
                 ))}
@@ -155,65 +122,80 @@ export default function AdminRecettesPage() {
               {recipes.map((recipe, i) => (
                 <tr
                   key={recipe.id}
-                  style={{
-                    borderBottom:
-                      i < recipes.length - 1 ? "1px solid var(--color-border)" : "none",
-                  }}
+                  className={`group hover:bg-primary/[0.02] transition-colors relative ${
+                    i < recipes.length - 1 ? "border-b border-border/20" : ""
+                  }`}
                 >
-                  <td style={{ padding: "14px 16px" }}>
-                    <span style={{ fontWeight: 500, fontSize: 14, color: "var(--color-text)" }}>
+                  {/* Left color bar */}
+                  <td className="relative px-5 py-4">
+                    <div className={`absolute left-0 top-2 bottom-2 w-[3px] rounded-r-full ${
+                      recipe.status === "published" ? "bg-emerald-400" : "bg-accent/60"
+                    }`} />
+                    <p className="text-[14px] font-medium text-text group-hover:text-primary transition-colors">
                       {recipe.title}
+                    </p>
+                    <p className="text-[11px] text-text-tertiary mt-0.5 font-mono">/{recipe.slug}</p>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                      recipe.status === "published"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-accent/10 text-accent"
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        recipe.status === "published" ? "bg-emerald-400" : "bg-accent"
+                      }`} />
+                      {recipe.status === "published" ? "Publié" : "Brouillon"}
                     </span>
-                    <br />
-                    <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                      /{recipe.slug}
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[11px] font-semibold ${difficultyColor[recipe.difficulty]}`}>
+                      {difficultyLabel[recipe.difficulty]}
                     </span>
                   </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <StatusBadge status={recipe.status} />
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-[13px] text-text-secondary">
+                      {recipe.prepTime + recipe.cookTime} min
+                    </span>
                   </td>
-                  <td style={{ padding: "14px 16px", fontSize: 13, color: "var(--color-text-secondary)" }}>
-                    {difficultyLabel[recipe.difficulty]}
-                  </td>
-                  <td
-                    style={{
-                      padding: "14px 16px",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: 13,
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
-                    {recipe.prepTime + recipe.cookTime} min
-                  </td>
-                  <td style={{ padding: "14px 16px" }}>
-                    <div style={{ display: "flex", gap: 8 }}>
+                  <td className="px-5 py-4">
+                    <div className="flex gap-1.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                       <Link
                         href={`/admin/recettes/${recipe.id}/modifier`}
-                        style={actionBtnStyle}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-primary hover:bg-primary/8 transition-all"
+                        title="Modifier"
                       >
-                        Modifier
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
                       </Link>
                       <button
                         onClick={() => handleToggleStatus(recipe)}
-                        style={{
-                          ...actionBtnStyle,
-                          cursor: "pointer",
-                          background: "transparent",
-                        }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+                        title={recipe.status === "draft" ? "Publier" : "Dépublier"}
                       >
-                        {recipe.status === "draft" ? "Publier" : "Dépublier"}
+                        {recipe.status === "draft" ? (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        ) : (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        )}
                       </button>
                       <button
                         onClick={() => handleDelete(recipe.id, recipe.title)}
-                        style={{
-                          ...actionBtnStyle,
-                          cursor: "pointer",
-                          background: "transparent",
-                          color: "#e53e3e",
-                          borderColor: "#feb2b2",
-                        }}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+                        title="Supprimer"
                       >
-                        Supprimer
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
                       </button>
                     </div>
                   </td>
@@ -226,31 +208,3 @@ export default function AdminRecettesPage() {
     </div>
   );
 }
-
-function StatusBadge({ status }: { status: "draft" | "published" }) {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        padding: "3px 10px",
-        borderRadius: 20,
-        fontSize: 12,
-        fontWeight: 600,
-        background: status === "published" ? "var(--color-primary-light)" : "var(--color-accent-light)",
-        color: status === "published" ? "var(--color-primary)" : "var(--color-accent)",
-      }}
-    >
-      {statusLabel[status]}
-    </span>
-  );
-}
-
-const actionBtnStyle: React.CSSProperties = {
-  fontSize: 12,
-  padding: "5px 10px",
-  borderRadius: 6,
-  border: "1px solid var(--color-border)",
-  color: "var(--color-text-secondary)",
-  textDecoration: "none",
-  display: "inline-block",
-};

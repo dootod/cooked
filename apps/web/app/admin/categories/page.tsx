@@ -20,6 +20,9 @@ function generateSlug(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+const inputClass =
+  "w-full px-4 py-2.5 text-[14px] text-text bg-white/80 border border-border/50 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/8 focus:bg-white placeholder:text-text-tertiary/60";
+
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,9 +36,7 @@ export default function AdminCategoriesPage() {
 
   async function load() {
     try {
-      const { categories } = await api.get<{ categories: Category[] }>(
-        "/api/admin/categories"
-      );
+      const { categories } = await api.get<{ categories: Category[] }>("/api/admin/categories");
       setCategories(categories);
     } catch {
       setCategories([]);
@@ -80,57 +81,33 @@ export default function AdminCategoriesPage() {
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+    <div className="admin-fade-up">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: 30,
-              fontWeight: 700,
-              color: "var(--color-text)",
-            }}
-          >
-            Catégories
-          </h1>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginTop: 4 }}>
+          <h1 className="text-[28px] font-bold text-text tracking-tight">Catégories</h1>
+          <p className="mt-1 text-[14px] text-text-secondary">
             {categories.length} catégorie{categories.length !== 1 ? "s" : ""}
           </p>
         </div>
         {!creating && (
           <button
             onClick={() => setCreating(true)}
-            style={{
-              background: "var(--color-primary)",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              border: "none",
-              cursor: "pointer",
-            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-[13px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_28px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
           >
-            + Nouvelle catégorie
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Nouvelle catégorie
           </button>
         )}
       </div>
 
       {/* Create form */}
       {creating && (
-        <div
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-primary)",
-            borderRadius: 10,
-            padding: 20,
-            marginBottom: 20,
-          }}
-        >
-          <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, color: "var(--color-text)" }}>
-            Nouvelle catégorie
-          </h2>
-          <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div className="mb-5 admin-glass rounded-2xl p-6 ring-2 ring-primary/20">
+          <h2 className="text-[14px] font-semibold text-text mb-4">Nouvelle catégorie</h2>
+          <form onSubmit={handleCreate} className="space-y-3">
             <input
               type="text"
               value={newName}
@@ -138,47 +115,30 @@ export default function AdminCategoriesPage() {
               placeholder="Nom de la catégorie (ex: Plat principal)"
               required
               autoFocus
-              style={inputStyle}
+              className={inputClass}
             />
             <input
               type="text"
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
               placeholder="Description (optionnelle)"
-              style={inputStyle}
+              className={inputClass}
             />
-            <p style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
-              Slug : {generateSlug(newName) || "..."}
+            <p className="text-[11px] text-text-tertiary font-mono">
+              /{generateSlug(newName) || "..."}
             </p>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="flex gap-2 pt-1">
               <button
                 type="submit"
                 disabled={saving}
-                style={{
-                  background: "var(--color-primary)",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 7,
-                  padding: "9px 18px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: saving ? "not-allowed" : "pointer",
-                }}
+                className="px-5 py-2 bg-gradient-to-r from-primary to-primary/90 text-white text-[13px] font-semibold rounded-xl shadow-[0_4px_12px_rgba(79,111,232,0.25)] hover:shadow-[0_8px_20px_rgba(79,111,232,0.35)] transition-all disabled:opacity-60 cursor-pointer"
               >
                 {saving ? "..." : "Créer"}
               </button>
               <button
                 type="button"
                 onClick={() => setCreating(false)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: 7,
-                  padding: "9px 18px",
-                  fontSize: 14,
-                  color: "var(--color-text-secondary)",
-                  cursor: "pointer",
-                }}
+                className="px-4 py-2 text-[13px] font-medium text-text-secondary border border-border/50 rounded-xl hover:bg-primary/5 transition-all cursor-pointer"
               >
                 Annuler
               </button>
@@ -187,119 +147,85 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* Category list */}
+      {/* List */}
       {loading ? (
-        <p style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Chargement...</p>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 rounded-xl bg-white/40 animate-pulse" />
+          ))}
+        </div>
       ) : categories.length === 0 && !creating ? (
-        <div
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 10,
-            padding: 48,
-            textAlign: "center",
-          }}
-        >
-          <p style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>
-            Aucune catégorie. Commencez par en créer une.
-          </p>
+        <div className="admin-glass rounded-2xl text-center py-20 px-8">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" className="mx-auto mb-6">
+            <rect x="8" y="12" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" />
+            <rect x="44" y="12" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
+            <rect x="8" y="44" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
+            <rect x="44" y="44" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" strokeDasharray="4 3" />
+            <path d="M58 52v14M51 59h14" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <h3 className="text-lg font-semibold text-text mb-2">Aucune catégorie</h3>
+          <p className="text-sm text-text-secondary mb-6">Commencez par en créer une.</p>
+          <button
+            onClick={() => setCreating(true)}
+            className="px-5 py-2.5 bg-gradient-to-r from-primary to-primary/90 text-white text-sm font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_24px_rgba(79,111,232,0.4)] transition-all cursor-pointer"
+          >
+            Créer une catégorie
+          </button>
         </div>
       ) : (
-        <div
-          style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 10,
-            overflow: "hidden",
-          }}
-        >
-          {categories.map((cat, i) => (
-            <div
-              key={cat.id}
-              style={{
-                padding: "16px 20px",
-                borderBottom: i < categories.length - 1 ? "1px solid var(--color-border)" : "none",
-              }}
-            >
+        <div className="admin-glass rounded-2xl overflow-hidden divide-y divide-border/20">
+          {categories.map((cat) => (
+            <div key={cat.id} className="px-6 py-4 group hover:bg-primary/[0.02] transition-colors">
               {editingId === cat.id ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    style={inputStyle}
-                    autoFocus
-                  />
-                  <input
-                    type="text"
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    placeholder="Description"
-                    style={inputStyle}
-                  />
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      onClick={() => handleSaveEdit(cat.id)}
-                      style={{
-                        background: "var(--color-primary)",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 6,
-                        padding: "7px 14px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
-                    >
+                <div className="space-y-3">
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className={inputClass} autoFocus />
+                  <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} placeholder="Description" className={inputClass} />
+                  <div className="flex gap-2">
+                    <button onClick={() => handleSaveEdit(cat.id)} className="px-4 py-1.5 bg-gradient-to-r from-primary to-primary/90 text-white text-[12px] font-semibold rounded-lg transition-all cursor-pointer">
                       Enregistrer
                     </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      style={{
-                        background: "transparent",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: 6,
-                        padding: "7px 14px",
-                        fontSize: 13,
-                        color: "var(--color-text-secondary)",
-                        cursor: "pointer",
-                      }}
-                    >
+                    <button onClick={() => setEditingId(null)} className="px-3 py-1.5 text-[12px] font-medium text-text-secondary border border-border/50 rounded-lg hover:bg-primary/5 transition-all cursor-pointer">
                       Annuler
                     </button>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div>
-                    <span style={{ fontWeight: 500, fontSize: 14, color: "var(--color-text)" }}>
-                      {cat.name}
-                    </span>
-                    {cat.description && (
-                      <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
-                        {cat.description}
-                      </p>
-                    )}
-                    <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
-                      /{cat.slug}
-                    </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
+                        <path d="M7 7h.01" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="text-[14px] font-medium text-text">{cat.name}</span>
+                      {cat.description && (
+                        <p className="text-[12px] text-text-secondary mt-0.5">{cat.description}</p>
+                      )}
+                      <span className="text-[11px] text-text-tertiary font-mono">/{cat.slug}</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => {
-                        setEditingId(cat.id);
-                        setEditName(cat.name);
-                        setEditDescription(cat.description ?? "");
-                      }}
-                      style={smallBtnStyle}
+                      onClick={() => { setEditingId(cat.id); setEditName(cat.name); setEditDescription(cat.description ?? ""); }}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-primary hover:bg-primary/8 transition-all cursor-pointer"
+                      title="Modifier"
                     >
-                      Modifier
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
                     </button>
                     <button
                       onClick={() => handleDelete(cat.id, cat.name)}
-                      style={{ ...smallBtnStyle, color: "#e53e3e", borderColor: "#feb2b2" }}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-text-tertiary hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer"
+                      title="Supprimer"
                     >
-                      Supprimer
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -311,25 +237,3 @@ export default function AdminCategoriesPage() {
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  border: "1px solid var(--color-border)",
-  borderRadius: 8,
-  padding: "9px 12px",
-  fontSize: 14,
-  color: "var(--color-text)",
-  background: "white",
-  outline: "none",
-  width: "100%",
-  fontFamily: "inherit",
-};
-
-const smallBtnStyle: React.CSSProperties = {
-  fontSize: 12,
-  padding: "5px 10px",
-  borderRadius: 6,
-  border: "1px solid var(--color-border)",
-  color: "var(--color-text-secondary)",
-  background: "transparent",
-  cursor: "pointer",
-};

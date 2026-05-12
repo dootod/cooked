@@ -34,6 +34,11 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+const inputClass =
+  "w-full px-4 py-2.5 text-[14px] text-text bg-white/80 border border-border/50 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/8 focus:bg-white placeholder:text-text-tertiary/60";
+
+const selectClass = `${inputClass} appearance-none bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%201.5L6%206.5L11%201.5%22%20stroke%3D%22%236B7A99%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_12px_center] pr-10`;
+
 export function RecipeForm({ recipeId }: RecipeFormProps) {
   const router = useRouter();
   const isEditing = Boolean(recipeId);
@@ -60,14 +65,12 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
   const [fetchLoading, setFetchLoading] = useState(isEditing);
   const [error, setError] = useState("");
 
-  // Auto-generate slug from title
   useEffect(() => {
     if (!slugManual && title) {
       setSlug(generateSlug(title));
     }
   }, [title, slugManual]);
 
-  // Load existing recipe when editing
   useEffect(() => {
     if (!recipeId) return;
     async function load() {
@@ -193,7 +196,7 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         await api.post("/api/admin/recipes", payload);
       }
       router.push("/admin/recettes");
-    } catch (err) {
+    } catch {
       setError("Une erreur est survenue. Vérifiez que le slug est unique.");
     }
 
@@ -201,253 +204,136 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
   }
 
   if (fetchLoading) {
-    return <p style={{ color: "var(--color-text-secondary)", fontSize: 14 }}>Chargement...</p>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 800 }}>
+    <form onSubmit={handleSubmit} className="max-w-[820px]">
       {error && (
-        <div
-          style={{
-            background: "#fff5f5",
-            border: "1px solid #feb2b2",
-            borderRadius: 8,
-            padding: "12px 16px",
-            marginBottom: 24,
-            fontSize: 14,
-            color: "#e53e3e",
-          }}
-        >
+        <div className="mb-6 px-4 py-3 text-[14px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl flex items-center gap-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
           {error}
         </div>
       )}
 
-      {/* Section: Informations de base */}
-      <Section title="Informations">
-        <Field label="Titre *">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            placeholder="Ex : Pasta Carbonara"
-            style={inputStyle}
-          />
-        </Field>
-
-        <Field label="Slug (URL)">
-          <input
-            type="text"
-            value={slug}
-            onChange={(e) => {
-              setSlug(e.target.value);
-              setSlugManual(true);
-            }}
-            placeholder="pasta-carbonara"
-            style={inputStyle}
-          />
-          <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
-            URL : /recettes/{slug || "..."}
-          </p>
-        </Field>
-
-        <Field label="Description">
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            placeholder="Décrivez brièvement la recette..."
-            style={{ ...inputStyle, resize: "vertical" }}
-          />
-        </Field>
-
-        <Field label="Vidéo (URL YouTube / Vimeo)">
-          <input
-            type="url"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            placeholder="https://youtube.com/watch?v=..."
-            style={inputStyle}
-          />
-        </Field>
+      {/* Informations */}
+      <Section title="Informations" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      }>
+        <div className="space-y-4">
+          <Field label="Titre *">
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="Ex : Pasta Carbonara" className={inputClass} />
+          </Field>
+          <Field label="Slug (URL)">
+            <input type="text" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugManual(true); }} placeholder="pasta-carbonara" className={inputClass} />
+            <p className="text-[11px] text-text-tertiary mt-1.5 font-mono">/recettes/{slug || "..."}</p>
+          </Field>
+          <Field label="Description">
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Décrivez brièvement la recette..." className={`${inputClass} resize-y`} />
+          </Field>
+          <Field label="Vidéo (URL YouTube / Vimeo)">
+            <input type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className={inputClass} />
+          </Field>
+        </div>
       </Section>
 
-      {/* Section: Détails */}
-      <Section title="Détails">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+      {/* Détails */}
+      <Section title="Détails" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      }>
+        <div className="grid grid-cols-4 gap-3 mb-4">
           <Field label="Prép. (min)">
-            <input
-              type="number"
-              min={0}
-              value={prepTime}
-              onChange={(e) => setPrepTime(e.target.value)}
-              placeholder="15"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={prepTime} onChange={(e) => setPrepTime(e.target.value)} placeholder="15" className={inputClass} />
           </Field>
           <Field label="Cuisson (min)">
-            <input
-              type="number"
-              min={0}
-              value={cookTime}
-              onChange={(e) => setCookTime(e.target.value)}
-              placeholder="20"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={cookTime} onChange={(e) => setCookTime(e.target.value)} placeholder="20" className={inputClass} />
           </Field>
           <Field label="Portions">
-            <input
-              type="number"
-              min={1}
-              value={servings}
-              onChange={(e) => setServings(e.target.value)}
-              style={inputStyle}
-            />
+            <input type="number" min={1} value={servings} onChange={(e) => setServings(e.target.value)} className={inputClass} />
           </Field>
           <Field label="Difficulté">
-            <select
-              value={difficulty}
-              onChange={(e) =>
-                setDifficulty(e.target.value as "easy" | "intermediate" | "hard")
-              }
-              style={inputStyle}
-            >
+            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as "easy" | "intermediate" | "hard")} className={selectClass}>
               {DIFFICULTY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
+                <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
           </Field>
         </div>
-
         <Field label="Statut">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as "draft" | "published")}
-            style={{ ...inputStyle, maxWidth: 200 }}
-          >
+          <select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")} className={`${selectClass} max-w-[200px]`}>
             <option value="draft">Brouillon</option>
             <option value="published">Publié</option>
           </select>
         </Field>
       </Section>
 
-      {/* Section: Macros */}
-      <Section title="Macronutriments (par portion)">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
+      {/* Macros */}
+      <Section title="Macronutriments" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg>
+      }>
+        <p className="text-[11px] text-text-tertiary mb-3">Valeurs par portion</p>
+        <div className="grid grid-cols-4 gap-3">
           <Field label="Kcal">
-            <input
-              type="number"
-              min={0}
-              value={macroKcal}
-              onChange={(e) => setMacroKcal(e.target.value)}
-              placeholder="450"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={macroKcal} onChange={(e) => setMacroKcal(e.target.value)} placeholder="450" className={inputClass} />
           </Field>
           <Field label="Protéines (g)">
-            <input
-              type="number"
-              min={0}
-              value={macroProtein}
-              onChange={(e) => setMacroProtein(e.target.value)}
-              placeholder="25"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={macroProtein} onChange={(e) => setMacroProtein(e.target.value)} placeholder="25" className={inputClass} />
           </Field>
           <Field label="Glucides (g)">
-            <input
-              type="number"
-              min={0}
-              value={macroCarbs}
-              onChange={(e) => setMacroCarbs(e.target.value)}
-              placeholder="60"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={macroCarbs} onChange={(e) => setMacroCarbs(e.target.value)} placeholder="60" className={inputClass} />
           </Field>
           <Field label="Lipides (g)">
-            <input
-              type="number"
-              min={0}
-              value={macroFat}
-              onChange={(e) => setMacroFat(e.target.value)}
-              placeholder="18"
-              style={inputStyle}
-            />
+            <input type="number" min={0} value={macroFat} onChange={(e) => setMacroFat(e.target.value)} placeholder="18" className={inputClass} />
           </Field>
         </div>
       </Section>
 
-      {/* Section: Ingrédients */}
-      <Section title="Ingrédients">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "3fr 1fr 1fr 2fr 32px",
-              gap: 8,
-              marginBottom: 4,
-            }}
-          >
-            {["Ingrédient", "Quantité", "Unité", "Note", ""].map((h) => (
-              <span
-                key={h}
-                style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase" }}
-              >
-                {h}
-              </span>
+      {/* Ingrédients */}
+      <Section title="Ingrédients" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z" />
+          <path d="M6 9.01V9" />
+          <path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19" />
+        </svg>
+      }>
+        <div className="space-y-2">
+          <div className="grid grid-cols-[3fr_1fr_1fr_2fr_36px] gap-2">
+            {["Ingrédient", "Qté", "Unité", "Note", ""].map((h) => (
+              <span key={h} className="text-[10px] font-bold tracking-[0.08em] uppercase text-text-tertiary">{h}</span>
             ))}
           </div>
-
           {ingredients.map((ing, i) => (
-            <div
-              key={i}
-              style={{ display: "grid", gridTemplateColumns: "3fr 1fr 1fr 2fr 32px", gap: 8, alignItems: "center" }}
-            >
-              <input
-                type="text"
-                value={ing.name}
-                onChange={(e) => updateIngredient(i, "name", e.target.value)}
-                placeholder="Ex : farine"
-                style={inputStyle}
-              />
-              <input
-                type="text"
-                value={ing.quantity}
-                onChange={(e) => updateIngredient(i, "quantity", e.target.value)}
-                placeholder="200"
-                style={inputStyle}
-              />
-              <input
-                type="text"
-                value={ing.unit}
-                onChange={(e) => updateIngredient(i, "unit", e.target.value)}
-                placeholder="g"
-                style={inputStyle}
-              />
-              <input
-                type="text"
-                value={ing.note}
-                onChange={(e) => updateIngredient(i, "note", e.target.value)}
-                placeholder="tamisée"
-                style={inputStyle}
-              />
+            <div key={i} className="grid grid-cols-[3fr_1fr_1fr_2fr_36px] gap-2 items-center">
+              <input type="text" value={ing.name} onChange={(e) => updateIngredient(i, "name", e.target.value)} placeholder="farine" className={inputClass} />
+              <input type="text" value={ing.quantity} onChange={(e) => updateIngredient(i, "quantity", e.target.value)} placeholder="200" className={inputClass} />
+              <input type="text" value={ing.unit} onChange={(e) => updateIngredient(i, "unit", e.target.value)} placeholder="g" className={inputClass} />
+              <input type="text" value={ing.note} onChange={(e) => updateIngredient(i, "note", e.target.value)} placeholder="tamisée" className={inputClass} />
               <button
                 type="button"
                 onClick={() => removeIngredient(i)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  color: "var(--color-text-secondary)",
-                  fontSize: 16,
-                  lineHeight: 1,
-                  padding: "4px 8px",
-                }}
+                className="w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
               >
-                ×
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           ))}
@@ -455,51 +341,48 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         <button
           type="button"
           onClick={addIngredient}
-          style={{ ...addBtnStyle, marginTop: 8 }}
+          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
         >
-          + Ajouter un ingrédient
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Ajouter un ingrédient
         </button>
       </Section>
 
-      {/* Section: Étapes */}
-      <Section title="Étapes">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      {/* Étapes */}
+      <Section title="Étapes" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
+        </svg>
+      }>
+        <div className="space-y-3">
           {steps.map((step, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "28px 1fr 32px", gap: 10, alignItems: "start" }}>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 14,
-                  color: "var(--color-primary)",
-                  fontWeight: 700,
-                  paddingTop: 10,
-                }}
-              >
-                {i + 1}.
-              </span>
+            <div key={i} className="grid grid-cols-[40px_1fr_36px] gap-3 items-start">
+              <div className="w-8 h-8 mt-1.5 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-[12px] font-bold shadow-[0_2px_8px_rgba(79,111,232,0.25)]">
+                {i + 1}
+              </div>
               <textarea
                 value={step.content}
                 onChange={(e) => updateStep(i, e.target.value)}
                 rows={2}
                 placeholder={`Description de l'étape ${i + 1}...`}
-                style={{ ...inputStyle, resize: "vertical" }}
+                className={`${inputClass} resize-y`}
               />
               <button
                 type="button"
                 onClick={() => removeStep(i)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  color: "var(--color-text-secondary)",
-                  fontSize: 16,
-                  lineHeight: 1,
-                  padding: "4px 8px",
-                  marginTop: 6,
-                }}
+                className="mt-1.5 w-9 h-9 flex items-center justify-center text-text-tertiary hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
               >
-                ×
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </div>
           ))}
@@ -507,46 +390,31 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         <button
           type="button"
           onClick={addStep}
-          style={{ ...addBtnStyle, marginTop: 8 }}
+          className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-primary border border-dashed border-primary/30 rounded-xl hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer"
         >
-          + Ajouter une étape
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Ajouter une étape
         </button>
       </Section>
 
       {/* Actions */}
-      <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+      <div className="flex gap-3 mt-2">
         <button
           type="submit"
           disabled={loading}
-          style={{
-            background: loading ? "var(--color-border)" : "var(--color-primary)",
-            color: "white",
-            border: "none",
-            borderRadius: 8,
-            padding: "12px 28px",
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
+          className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_20px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_30px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
         >
-          {loading
-            ? "Enregistrement..."
-            : isEditing
-            ? "Enregistrer les modifications"
-            : "Créer la recette"}
+          {loading && (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          )}
+          {loading ? "Enregistrement..." : isEditing ? "Enregistrer les modifications" : "Créer la recette"}
         </button>
         <button
           type="button"
           onClick={() => router.push("/admin/recettes")}
-          style={{
-            background: "transparent",
-            border: "1px solid var(--color-border)",
-            borderRadius: 8,
-            padding: "12px 20px",
-            fontSize: 15,
-            color: "var(--color-text-secondary)",
-            cursor: "pointer",
-          }}
+          className="px-5 py-3 text-[15px] font-medium text-text-secondary border border-border/50 rounded-xl hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all cursor-pointer"
         >
           Annuler
         </button>
@@ -555,63 +423,25 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        background: "var(--color-surface)",
-        border: "1px solid var(--color-border)",
-        borderRadius: 10,
-        padding: 24,
-        marginBottom: 20,
-      }}
-    >
-      <h2
-        style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: 16,
-          fontWeight: 700,
-          color: "var(--color-primary)",
-          marginBottom: 16,
-        }}
-      >
-        {title}
-      </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>{children}</div>
+    <div className="mb-5 admin-glass rounded-2xl p-6">
+      <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border/30">
+        <span className="text-primary">{icon}</span>
+        <h2 className="text-[15px] font-bold text-text">{title}</h2>
+      </div>
+      {children}
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-      <label style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-secondary)" }}>
+    <div>
+      <label className="block text-[12px] font-semibold text-text-secondary mb-1.5 tracking-wide">
         {label}
       </label>
       {children}
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  border: "1px solid var(--color-border)",
-  borderRadius: 8,
-  padding: "9px 12px",
-  fontSize: 14,
-  color: "var(--color-text)",
-  background: "white",
-  outline: "none",
-  width: "100%",
-  fontFamily: "inherit",
-};
-
-const addBtnStyle: React.CSSProperties = {
-  background: "var(--color-primary-light)",
-  color: "var(--color-primary)",
-  border: "1px dashed var(--color-primary)",
-  borderRadius: 8,
-  padding: "8px 16px",
-  fontSize: 13,
-  fontWeight: 600,
-  cursor: "pointer",
-};

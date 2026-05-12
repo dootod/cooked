@@ -117,9 +117,10 @@ La barre de recherche est accessible depuis toutes les pages via le header.
 ### 3.4 Backoffice
 
 - Authentification séparée du site public (route `/admin`)
-- Dashboard : KPIs (recettes publiées, membres, brouillons, commentaires en attente)
-- CRUD complet recettes avec éditeur riche pour les étapes
-- Gestion des catégories et tags
+- Dashboard : KPIs avec ring charts SVG (recettes totales, publiées, brouillons)
+- CRUD complet recettes avec formulaire sectionné (informations, détails, macros, ingrédients, étapes)
+- Gestion des catégories (CRUD complet)
+- Gestion des tags
 - Gestion des utilisateurs (suspension, suppression)
 - File de modération des commentaires (approuver / rejeter)
 - Upload de médias avec prévisualisation
@@ -159,6 +160,7 @@ cooked/  (monorepo)
 | **Stockage médias** | Cloudflare R2 | — | 10 Go/mois gratuits, compatible S3, zéro frais d'egress |
 | **Emails** | Resend | 6.x | SDK TypeScript officiel, gratuit jusqu'à 3 000 mails/mois |
 | **Vidéo** | Embed YouTube / Vimeo | — | Gratuit, CDN mondial, zéro infra à gérer |
+| **CSS** | Tailwind CSS | 4.x | Utility-first, intégré via `@tailwindcss/postcss`, thème custom via `@theme` |
 | **Langage** | TypeScript | 5.x | Une seule langue sur toute la stack — idéal pour le vibe coding |
 
 ### 4.3 Monorepo
@@ -352,6 +354,23 @@ Layout en deux colonnes sur desktop :
 - **Colonne gauche (60%)** : image hero pleine largeur, galerie, vidéo embed, étapes
 - **Colonne droite (40%)** : sticky — titre, note, macros, ingrédients adaptatifs, matériel, bouton favoris
 
+### Design Backoffice
+
+Le backoffice utilise un design distinct du site public, orienté productivité et lisibilité.
+
+| Élément | Détail |
+|---|---|
+| **Sidebar** | Fond dark (`#0F1629`), barre gradient animée en haut (indigo → pêche → violet), orbe ambient en blur, indicateur actif = barre gradient verticale à gauche |
+| **Fond principal** | Grille de points (dot-grid) sur fond `#F6F8FF` |
+| **Cards** | Glassmorphism — `backdrop-blur(20px)`, fond blanc semi-transparent 70%, bordure indigo pâle 30% |
+| **KPIs** | Ring charts SVG avec progression animée, icônes SVG dans conteneurs colorés |
+| **Actions rapides** | Cards glass avec icônes gradient (indigo, pêche, violet), effet scale-up au hover |
+| **Tables** | Barre de couleur verticale à gauche par ligne (vert = publié, orange = brouillon), boutons d'action en icônes au hover |
+| **Formulaires** | Sections glass avec en-tête icône SVG + titre, inputs avec focus ring primary, numéros d'étapes en cercles gradient |
+| **États vides** | Illustrations SVG géométriques custom (pas d'emojis), lignes indigo + pêche |
+| **Animations** | Fade-up à l'entrée de page, hover glow/lift sur les cards, gradient flow continu sur la barre sidebar |
+| **Icônes** | SVG inline partout — aucun emoji utilisé dans l'interface admin |
+
 ---
 
 ## 9. Pages Publiques — Sitemap
@@ -368,8 +387,11 @@ Layout en deux colonnes sur desktop :
 | `/compte/profil` | Profil membre — favoris, historique, paramètres |
 | `/compte/favoris` | Bento grid des recettes favorites |
 | `/compte/liste-de-courses` | Liste de courses en cours |
-| `/admin` | Dashboard backoffice (accès restreint admin) |
-| `/admin/recettes` | Gestion des recettes |
+| `/admin` | Dashboard backoffice — KPIs ring charts + actions rapides (accès restreint admin) |
+| `/admin/recettes` | Liste des recettes avec table, filtres statut/difficulté |
+| `/admin/recettes/nouveau` | Formulaire création recette |
+| `/admin/recettes/[id]/modifier` | Formulaire édition recette |
+| `/admin/categories` | CRUD catégories |
 | `/admin/commentaires` | File de modération |
 | `/admin/utilisateurs` | Gestion des membres |
 
@@ -395,13 +417,16 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 ## 11. Roadmap
 
 ### Phase 1 — MVP
-- Monorepo Turborepo initialisé
-- Schéma Drizzle + migrations PostgreSQL
-- API Hono : routes recettes publiques + auth admin
-- Next.js : accueil bento grid, catalogue, détail recette
-- Backoffice : CRUD recettes, catégories, tags
-- Upload images vers Cloudflare R2
-- Déploiement Vercel + VPS
+- [x] Monorepo Turborepo initialisé
+- [x] Schéma Drizzle + migrations PostgreSQL
+- [x] API Hono : routes recettes publiques + admin CRUD (recettes, catégories)
+- [x] Auth Better Auth : email/password + plugin admin, middleware auth + admin
+- [x] Backoffice : dashboard KPIs, CRUD recettes (formulaire complet), CRUD catégories, modération, utilisateurs
+- [x] Backoffice design : dark sidebar, glassmorphism, dot-grid, ring charts, SVG icons, animations
+- [x] Tailwind CSS v4 intégré via @tailwindcss/postcss
+- [ ] Next.js : accueil bento grid, catalogue, détail recette (pages publiques)
+- [ ] Upload images vers Cloudflare R2
+- [ ] Déploiement Vercel + VPS
 
 ### Phase 2 — Membres
 - Comptes utilisateurs (inscription, connexion, profil) via Better Auth
