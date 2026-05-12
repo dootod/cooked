@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth";
+import Header from "@/components/public/Header";
 
 const navItems = [
   {
@@ -98,8 +99,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const sidebarContent = (
     <>
-      {/* Animated gradient bar */}
-      <div className="h-[2px] admin-gradient-bar shrink-0" />
 
       {/* Ambient glow orb */}
       <div
@@ -177,60 +176,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   return (
-    <div className="flex min-h-screen bg-bg">
-      {/* Mobile header bar */}
-      <div className="fixed top-0 left-0 right-0 h-14 bg-[#0F1629] flex items-center justify-between px-4 z-30 lg:hidden">
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-colors cursor-pointer"
+    <div className="flex flex-col min-h-screen bg-bg">
+      {/* Full-width navbar */}
+      <Header hideSearch hideLogo darkBg="bg-[#0F1629]" showGradientBar sidebarToggle={() => setSidebarOpen(true)} inlineProfile />
+
+      <div className="flex flex-1 min-h-0">
+        {/* Mobile sidebar overlay */}
+        {sidebarOpen && (
+          <div
+            className="admin-sidebar-overlay lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          className={`w-[260px] bg-[#0F1629] flex flex-col shrink-0 overflow-hidden
+            fixed top-0 bottom-0 left-0 z-50 transition-transform duration-300 ease-out
+            lg:relative lg:translate-x-0 lg:z-auto
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <span className="text-[18px] font-serif font-bold text-white">
-          Cooked<span className="text-accent">.</span>
-        </span>
-        <div className="w-10" />
+          {/* Mobile close button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors lg:hidden cursor-pointer"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+
+          {sidebarContent}
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-x-hidden admin-dot-grid">
+          <div className="p-5 sm:p-8 lg:p-10 max-w-[1200px] mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
-
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="admin-sidebar-overlay lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar — desktop: static, mobile: sliding overlay */}
-      <aside
-        className={`w-[260px] bg-[#0F1629] flex flex-col shrink-0 overflow-hidden
-          fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-out
-          lg:relative lg:translate-x-0 lg:z-auto
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
-      >
-        {/* Mobile close button */}
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center text-white/40 hover:text-white transition-colors lg:hidden cursor-pointer"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-
-        {sidebarContent}
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden admin-dot-grid pt-14 lg:pt-0">
-        <div className="p-5 sm:p-8 lg:p-10 max-w-[1200px] mx-auto">
-          {children}
-        </div>
-      </main>
     </div>
   );
 }
