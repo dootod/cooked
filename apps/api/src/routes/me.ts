@@ -1,33 +1,61 @@
 import { Hono } from "hono";
+import { db, favorites, recipes } from "@cooked/db";
+import { and, eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth.js";
+import type { AppEnv } from "../lib/types.js";
 
-const app = new Hono();
+const app = new Hono<AppEnv>();
 
 app.use("*", authMiddleware);
 
-// GET /api/me
 app.get("/", async (c) => {
-  // TODO: return authenticated user profile
-  return c.json({ user: null });
+  const u = c.get("user");
+  return c.json({
+    user: {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      role: u.role,
+      image: u.image,
+    },
+  });
 });
 
-// PUT /api/me
-app.put("/", async (c) => {
-  // TODO: update profile
-  return c.json({ error: "Not implemented" }, 501);
-});
-
-// POST /api/me/favorites/:id
 app.post("/favorites/:id", async (c) => {
-  const id = c.req.param("id");
-  // TODO: add to favorites
-  return c.json({ ok: true });
+  const recipeId = c.req.param("id");
+  const u = c.get("user");
+
+  const [recipe] = await db
+    .select({ id: recipes.id })
+    .from(recipes)
+    .where(eq(recipes.id, recipeId))
+    .limit(1);
+  if (!recipe) return c.json({ error: "Recette introuvable" }, 404);
+
+  const [existing] = await db
+    .select()
+    .from(favorites)
+    .where(and(eq(favorites.userId, u.id), eq(favorites.recipeId, recipeId)))
+    .limit(1);
+
+  if (existing) return c.json({ ok: true });
+
+  await db.insert(favorites).values({
+    userId: u.id,
+    recipeId,
+  });
+
+  return c.json({ ok: true }, 201);
 });
 
-// DELETE /api/me/favorites/:id
 app.delete("/favorites/:id", async (c) => {
-  const id = c.req.param("id");
-  // TODO: remove from favorites
+  const recipeId = c.req.param("id");
+  const u = c.get("user");
+
+  await db
+    .delete(favorites)
+    .where(and(eq(favorites.userId, u.id), eq(favorites.recipeId, recipeId)));
+
   return c.json({ ok: true });
 });
 

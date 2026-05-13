@@ -14,14 +14,19 @@ import {
   equipment,
 } from "@cooked/db";
 import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { paginationSchema } from "../lib/validation.js";
+
+const VALID_DIFFICULTIES = ["easy", "intermediate", "hard"] as const;
 
 const app = new Hono();
 
 app.get("/", async (c) => {
-  const page = Number(c.req.query("page") ?? 1);
-  const limit = Number(c.req.query("limit") ?? 12);
+  const { page, limit } = paginationSchema.parse({
+    page: c.req.query("page"),
+    limit: c.req.query("limit"),
+  });
   const offset = (page - 1) * limit;
-  const search = c.req.query("search");
+  const search = c.req.query("search")?.slice(0, 200);
   const categorySlug = c.req.query("category");
   const tagSlug = c.req.query("tag");
   const difficulty = c.req.query("difficulty");
@@ -32,7 +37,7 @@ app.get("/", async (c) => {
   if (search) {
     conditions.push(ilike(recipes.title, `%${search}%`));
   }
-  if (difficulty) {
+  if (difficulty && VALID_DIFFICULTIES.includes(difficulty as typeof VALID_DIFFICULTIES[number])) {
     conditions.push(eq(recipes.difficulty, difficulty as "easy" | "intermediate" | "hard"));
   }
 
@@ -95,10 +100,7 @@ app.get("/", async (c) => {
       .orderBy(orderBy)
       .limit(limit)
       .offset(offset),
-    db
-      .select({ total: count() })
-      .from(recipes)
-      .where(where),
+    db.select({ total: count() }).from(recipes).where(where),
   ]);
 
   if (rows.length === 0) {
@@ -140,7 +142,7 @@ app.get("/", async (c) => {
     ...recipe,
     primaryMedia: primaryMedias.find((m) => m.recipeId === recipe.id) ?? null,
     macros: recipeMacros.find((m) => m.recipeId === recipe.id) ?? null,
-    categories: recipeCategories.filter((c) => c.recipeId === recipe.id),
+    categories: recipeCategories.filter((rc) => rc.recipeId === recipe.id),
     tags: recipeTags.filter((t) => t.recipeId === recipe.id),
   }));
 

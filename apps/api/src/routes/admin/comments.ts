@@ -1,15 +1,15 @@
 import { Hono } from "hono";
-import { db } from "@cooked/db";
-import { comments } from "@cooked/db";
+import { db, comments } from "@cooked/db";
 import { eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
+import { commentStatusSchema } from "../../lib/validation.js";
+import type { AppEnv } from "../../lib/types.js";
 
-const app = new Hono();
+const app = new Hono<AppEnv>();
 
 app.use("*", authMiddleware, adminMiddleware);
 
-// GET /api/admin/comments — file de modération (pending)
 app.get("/", async (c) => {
   const rows = await db
     .select()
@@ -18,17 +18,21 @@ app.get("/", async (c) => {
   return c.json({ comments: rows });
 });
 
-// PATCH /api/admin/comments/:id — approuver ou rejeter
 app.patch("/:id", async (c) => {
   const id = c.req.param("id");
-  const { status } = await c.req.json<{ status: "approved" | "rejected" }>();
+  const raw = await c.req.json();
+  const result = commentStatusSchema.safeParse(raw);
+  if (!result.success) {
+    return c.json({ error: "Status doit etre 'approved' ou 'rejected'" }, 400);
+  }
 
   const [comment] = await db
     .update(comments)
-    .set({ status })
+    .set({ status: result.data.status })
     .where(eq(comments.id, id))
     .returning();
 
+  if (!comment) return c.json({ error: "Not found" }, 404);
   return c.json({ comment });
 });
 

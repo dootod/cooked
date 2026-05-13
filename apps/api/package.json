@@ -12,10 +12,11 @@
   },
   "dependencies": {
     "@cooked/db": "workspace:*",
-    "drizzle-orm": "^0.45.2",
     "@hono/node-server": "^2.0.2",
     "better-auth": "^1.6.10",
-    "hono": "^4.12.18"
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.12.18",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

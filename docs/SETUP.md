@@ -140,7 +140,7 @@ Sortie attendue :
 [✓] Changes applied
 ```
 
-Vérifier dans pgAdmin → `cooked` → **Schemas** → **public** → **Tables** — environ 15 tables doivent apparaître (`recipes`, `users`, `categories`, `tags`, `ingredients`, `steps`, `macros`, `medias`, `equipment`, `comments`, `ratings`, `favorites`, et les tables de jointure).
+Vérifier dans pgAdmin → `cooked` → **Schemas** → **public** → **Tables** — 18 tables doivent apparaitre : `recipes`, `categories`, `tags`, `equipment`, `ingredients`, `steps`, `macros`, `medias`, `recipes_categories`, `recipes_tags`, `recipes_equipment`, `comments`, `ratings`, `favorites`, `user`, `session`, `account`, `verification`.
 
 ---
 
@@ -190,7 +190,21 @@ Accès au backoffice : **http://localhost:3000/compte/connexion** → connecte-t
 
 ---
 
-## 8. Scripts disponibles
+## 8. Seeder les recettes de test
+
+Optionnel mais recommande pour avoir du contenu visible immediatement.
+
+Depuis `apps/api/` :
+
+```powershell
+node --env-file=.env --import tsx/esm src/scripts/seed-recipes.ts
+```
+
+Cree 8 recettes avec categories, tags, ingredients, etapes, macros et images (URLs Unsplash).
+
+---
+
+## 9. Scripts disponibles
 
 Tous ces scripts s'exécutent depuis la **racine** sauf indication contraire.
 
@@ -213,7 +227,7 @@ Scripts DB (depuis `packages/db/`) :
 
 ---
 
-## 9. Structure des fichiers importants
+## 10. Structure des fichiers importants
 
 ```
 cooked/
@@ -254,7 +268,7 @@ cooked/
 
 ---
 
-## 10. Dépannage fréquent
+## 11. Depannage frequent
 
 ### Port déjà utilisé au démarrage
 
@@ -279,9 +293,9 @@ Vérifier que la base `cooked` existe dans pgAdmin et que PostgreSQL est démarr
 Ne pas importer depuis `@cooked/db/schema` — importer directement depuis `@cooked/db` :
 
 ```ts
-// ✅ correct
-import { db, recipes, users } from "@cooked/db";
+// correct
+import { db, recipes, user } from "@cooked/db";
 
-// ❌ à éviter
+// a eviter
 import { recipes } from "@cooked/db/schema";
 ```

@@ -1,6 +1,6 @@
 # 🍳 Cooked — Product Requirements Document
 
-> **Version** : 2.1 · **Statut** : Draft · **Dernière mise à jour** : Mai 2026  
+> **Version** : 2.2 · **Statut** : Draft · **Dernière mise à jour** : Mai 2026  
 > **Auteur** : Thomas · **Contexte** : Projet perso — évolutif vers production
 
 ---
@@ -197,11 +197,13 @@ cooked/
 │   │   │   │       ├── comments.ts   ← modération
 │   │   │   │       └── users.ts
 │   │   │   ├── lib/
-│   │   │   │   └── auth.ts           ← config Better Auth (adapter Drizzle, plugin admin)
+│   │   │   │   ├── auth.ts           ← config Better Auth (adapter Drizzle, plugin admin)
+│   │   │   │   ├── validation.ts     ← schemas Zod (recettes, categories, commentaires, users)
+│   │   │   │   └── types.ts          ← types partages (AppEnv, AuthUser)
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.ts           ← vérification session Better Auth
 │   │   │   │   └── admin.ts          ← vérification rôle admin
-│   │   │   └── index.ts              ← point d'entrée Hono (catch-all /api/auth/** → Better Auth)
+│   │   │   └── index.ts              ← point d'entrée Hono (catch-all /api/auth/** → Better Auth, error handler global)
 │   │   └── package.json
 │   │
 │   └── web/                          ← Next.js 16 (public + backoffice)
@@ -247,14 +249,13 @@ cooked/
 | `macros` | id, recipeId, kcal, protein, carbs, fat |
 | `medias` | id, recipeId, url, alt, isPrimary |
 | `equipment` | id, name, iconSlug → lié à recipes (many-to-many) |
-| `user` | id, name, email, emailVerified, image, role, banned, banReason, banExpires, createdAt, updatedAt *(table Better Auth)* |
+| `user` | id, name, email, emailVerified, image, role, banned, banReason, banExpires, createdAt, updatedAt *(table Better Auth — source unique pour les utilisateurs)* |
 | `session` | id, expiresAt, token, userId, ipAddress, userAgent, impersonatedBy *(Better Auth)* |
 | `account` | id, accountId, providerId, userId, accessToken, refreshToken, password *(Better Auth)* |
 | `verification` | id, identifier, value, expiresAt *(Better Auth)* |
-| `users` | id, email, passwordHash, username, avatar, role, suspended, createdAt *(table applicative legacy — non utilisée actuellement)* |
-| `favorites` | userId, recipeId, createdAt |
-| `ratings` | id, userId, recipeId, score (1–5), createdAt — unique par couple |
-| `comments` | id, userId, recipeId, content, status (pending/approved/rejected), createdAt |
+| `favorites` | userId (FK user), recipeId (FK recipes), createdAt — PK composite (userId, recipeId) |
+| `ratings` | id, userId (FK user), recipeId (FK recipes), score (1-5), createdAt — unique (userId, recipeId) |
+| `comments` | id, userId (FK user), recipeId (FK recipes), content, status (pending/approved/rejected), createdAt |
 
 ### Flux de modération des commentaires
 
@@ -442,9 +443,12 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - [x] Tailwind CSS v4 intégré via @tailwindcss/postcss
 - [x] Pages connexion et inscription — design split-screen (panneau décoratif + formulaire)
 - [x] Responsive complet : sidebar mobile avec overlay, grilles adaptatives, tables avec scroll horizontal
-- [ ] Next.js : accueil bento grid, catalogue, détail recette (pages publiques)
+- [x] Pages publiques : accueil bento grid, catalogue filtrable, detail recette
+- [x] Audit securite + qualite : validation Zod sur tous endpoints, error handling global, FK/indexes/PK DB, proxy admin role check, pages error/404/loading
+- [x] Consolidation schema DB : table `users` supprimee (doublon), `user` Better Auth = source unique, FK + indexes + contraintes uniques ajoutees
+- [x] API /api/me implemente (profil + favoris CRUD)
 - [ ] Upload images vers Cloudflare R2
-- [ ] Déploiement Vercel + VPS
+- [ ] Deploiement Vercel + VPS
 
 ### Phase 2 — Membres
 - Pages profil et favoris (frontend)

@@ -41,10 +41,13 @@ cooked/
 - [x] Phase 1 — Gestion utilisateurs (fetch Better Auth, ban/role)
 - [x] Phase 1 — Moderation commentaires fonctionnelle (approve/reject)
 - [x] Phase 1 — Responsive complet (sidebar mobile, tables/cards adaptatives, formulaires)
-- [ ] Phase 1 — Pages publiques (accueil bento grid, catalogue, detail recette)
+- [x] Phase 1 — Pages publiques (accueil bento grid, catalogue filtrable, detail recette)
+- [x] Phase 1 — Audit securite : validation Zod, error handling, FK/indexes DB, proxy admin role check
+- [x] Phase 1 — Consolidation schema (table users supprimee, user Better Auth = source unique)
+- [x] Phase 1 — API /api/me (profil + favoris CRUD), pages 404/error/loading
 - [ ] Phase 1 — Upload images Cloudflare R2
 - [ ] Phase 1 — Deploiement Vercel + VPS
-- [ ] Phase 2 — Favoris, notation, commentaires membres
+- [ ] Phase 2 — Favoris, notation, commentaires membres (frontend)
 - [ ] Phase 2 — Recherche full-text + filtres avances
 - [ ] Phase 3 — Liste de courses PDF, analytics backoffice
 - [ ] Phase 4 — i18n, API publique documentee, app mobile

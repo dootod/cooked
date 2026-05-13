@@ -1,8 +1,10 @@
 import {
   boolean,
+  index,
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -52,8 +54,8 @@ export const recipes = pgTable("recipes", {
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
-  prepTime: integer("prep_time").notNull(), // minutes
-  cookTime: integer("cook_time").notNull(), // minutes
+  prepTime: integer("prep_time").notNull(),
+  cookTime: integer("cook_time").notNull(),
   difficulty: difficultyEnum("difficulty").notNull(),
   servings: integer("servings").notNull(),
   status: recipeStatusEnum("status").notNull().default("draft"),
@@ -62,85 +64,112 @@ export const recipes = pgTable("recipes", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const ingredients = pgTable("ingredients", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  quantity: real("quantity"),
-  unit: text("unit"),
-  note: text("note"),
-  order: integer("order").notNull().default(0),
-});
+export const ingredients = pgTable(
+  "ingredients",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    quantity: real("quantity"),
+    unit: text("unit"),
+    note: text("note"),
+    order: integer("order").notNull().default(0),
+  },
+  (t) => [index("idx_ingredients_recipe_id").on(t.recipeId)],
+);
 
-export const steps = pgTable("steps", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  content: text("content").notNull(),
-  order: integer("order").notNull(),
-  mediaUrl: text("media_url"),
-});
+export const steps = pgTable(
+  "steps",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    order: integer("order").notNull(),
+    mediaUrl: text("media_url"),
+  },
+  (t) => [index("idx_steps_recipe_id").on(t.recipeId)],
+);
 
-export const macros = pgTable("macros", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" })
-    .unique(),
-  kcal: real("kcal").notNull(),
-  protein: real("protein").notNull(),
-  carbs: real("carbs").notNull(),
-  fat: real("fat").notNull(),
-});
+export const macros = pgTable(
+  "macros",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" })
+      .unique(),
+    kcal: real("kcal").notNull(),
+    protein: real("protein").notNull(),
+    carbs: real("carbs").notNull(),
+    fat: real("fat").notNull(),
+  },
+  (t) => [index("idx_macros_recipe_id").on(t.recipeId)],
+);
 
-export const medias = pgTable("medias", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  url: text("url").notNull(),
-  alt: text("alt"),
-  isPrimary: boolean("is_primary").notNull().default(false),
-});
+export const medias = pgTable(
+  "medias",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    url: text("url").notNull(),
+    alt: text("alt"),
+    isPrimary: boolean("is_primary").notNull().default(false),
+  },
+  (t) => [index("idx_medias_recipe_id").on(t.recipeId)],
+);
 
-// Many-to-many join tables
-export const recipesCategories = pgTable("recipes_categories", {
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  categoryId: text("category_id")
-    .notNull()
-    .references(() => categories.id, { onDelete: "cascade" }),
-});
+export const recipesCategories = pgTable(
+  "recipes_categories",
+  {
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    categoryId: text("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.recipeId, t.categoryId] })],
+);
 
-export const recipesTags = pgTable("recipes_tags", {
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  tagId: text("tag_id")
-    .notNull()
-    .references(() => tags.id, { onDelete: "cascade" }),
-});
+export const recipesTags = pgTable(
+  "recipes_tags",
+  {
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    tagId: text("tag_id")
+      .notNull()
+      .references(() => tags.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.recipeId, t.tagId] })],
+);
 
-export const recipesEquipment = pgTable("recipes_equipment", {
-  recipeId: text("recipe_id")
-    .notNull()
-    .references(() => recipes.id, { onDelete: "cascade" }),
-  equipmentId: text("equipment_id")
-    .notNull()
-    .references(() => equipment.id, { onDelete: "cascade" }),
-});
+export const recipesEquipment = pgTable(
+  "recipes_equipment",
+  {
+    recipeId: text("recipe_id")
+      .notNull()
+      .references(() => recipes.id, { onDelete: "cascade" }),
+    equipmentId: text("equipment_id")
+      .notNull()
+      .references(() => equipment.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.recipeId, t.equipmentId] })],
+);
 
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;

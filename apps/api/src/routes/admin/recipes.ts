@@ -4,15 +4,21 @@ import { desc, eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { generateSlug } from "../../lib/utils.js";
+import {
+  createRecipeSchema,
+  updateRecipeSchema,
+} from "../../lib/validation.js";
+import type { AppEnv } from "../../lib/types.js";
 
-const app = new Hono();
+const app = new Hono<AppEnv>();
 app.use("*", authMiddleware, adminMiddleware);
 
 app.get("/", async (c) => {
   const rows = await db
     .select()
     .from(recipes)
-    .orderBy(desc(recipes.createdAt));
+    .orderBy(desc(recipes.createdAt))
+    .limit(200);
   return c.json({ recipes: rows });
 });
 
@@ -55,34 +61,35 @@ app.get("/:id", async (c) => {
 });
 
 app.post("/", async (c) => {
-  const body = await c.req.json<{
-    title: string;
-    slug?: string;
-    description?: string;
-    prepTime: number;
-    cookTime: number;
-    difficulty: "easy" | "intermediate" | "hard";
-    servings: number;
-    status?: "draft" | "published";
-    videoUrl?: string;
-    macros?: { kcal: number; protein: number; carbs: number; fat: number };
-    ingredients?: Array<{ name: string; quantity?: number; unit?: string; note?: string }>;
-    steps?: Array<{ content: string }>;
-  }>();
+  const raw = await c.req.json();
+  const result = createRecipeSchema.safeParse(raw);
+  if (!result.success) {
+    return c.json({ error: "Validation error", details: result.error.issues }, 400);
+  }
+  const body = result.data;
 
-  if (!body.title) return c.json({ error: "Titre requis" }, 400);
+  const slug = body.slug || generateSlug(body.title);
+
+  const existing = await db
+    .select({ id: recipes.id })
+    .from(recipes)
+    .where(eq(recipes.slug, slug))
+    .limit(1);
+  if (existing.length > 0) {
+    return c.json({ error: "Slug deja utilise" }, 409);
+  }
 
   const [recipe] = await db
     .insert(recipes)
     .values({
       title: body.title,
-      slug: body.slug || generateSlug(body.title),
+      slug,
       description: body.description ?? null,
-      prepTime: Number(body.prepTime) || 0,
-      cookTime: Number(body.cookTime) || 0,
-      difficulty: body.difficulty || "easy",
-      servings: Number(body.servings) || 1,
-      status: body.status || "draft",
+      prepTime: body.prepTime,
+      cookTime: body.cookTime,
+      difficulty: body.difficulty,
+      servings: body.servings,
+      status: body.status ?? "draft",
       videoUrl: body.videoUrl ?? null,
     })
     .returning();
@@ -90,10 +97,10 @@ app.post("/", async (c) => {
   if (body.macros) {
     await db.insert(macros).values({
       recipeId: recipe.id,
-      kcal: Number(body.macros.kcal) || 0,
-      protein: Number(body.macros.protein) || 0,
-      carbs: Number(body.macros.carbs) || 0,
-      fat: Number(body.macros.fat) || 0,
+      kcal: body.macros.kcal,
+      protein: body.macros.protein,
+      carbs: body.macros.carbs,
+      fat: body.macros.fat,
     });
   }
 
@@ -102,11 +109,11 @@ app.post("/", async (c) => {
       body.ingredients.map((ing, i) => ({
         recipeId: recipe.id,
         name: ing.name,
-        quantity: ing.quantity ? Number(ing.quantity) : null,
+        quantity: ing.quantity ?? null,
         unit: ing.unit ?? null,
         note: ing.note ?? null,
         order: i,
-      }))
+      })),
     );
   }
 
@@ -116,7 +123,7 @@ app.post("/", async (c) => {
         recipeId: recipe.id,
         content: step.content,
         order: i + 1,
-      }))
+      })),
     );
   }
 
@@ -125,32 +132,35 @@ app.post("/", async (c) => {
 
 app.put("/:id", async (c) => {
   const id = c.req.param("id");
-  const body = await c.req.json<{
-    title?: string;
-    slug?: string;
-    description?: string;
-    prepTime?: number;
-    cookTime?: number;
-    difficulty?: "easy" | "intermediate" | "hard";
-    servings?: number;
-    status?: "draft" | "published";
-    videoUrl?: string;
-    macros?: { kcal: number; protein: number; carbs: number; fat: number };
-    ingredients?: Array<{ name: string; quantity?: number; unit?: string; note?: string }>;
-    steps?: Array<{ content: string }>;
-  }>();
+  const raw = await c.req.json();
+  const result = updateRecipeSchema.safeParse(raw);
+  if (!result.success) {
+    return c.json({ error: "Validation error", details: result.error.issues }, 400);
+  }
+  const body = result.data;
+
+  if (body.slug) {
+    const existing = await db
+      .select({ id: recipes.id })
+      .from(recipes)
+      .where(eq(recipes.slug, body.slug))
+      .limit(1);
+    if (existing.length > 0 && existing[0].id !== id) {
+      return c.json({ error: "Slug deja utilise" }, 409);
+    }
+  }
 
   const [recipe] = await db
     .update(recipes)
     .set({
-      ...(body.title && { title: body.title }),
-      ...(body.slug && { slug: body.slug }),
+      ...(body.title !== undefined && { title: body.title }),
+      ...(body.slug !== undefined && { slug: body.slug }),
       ...(body.description !== undefined && { description: body.description }),
-      ...(body.prepTime !== undefined && { prepTime: Number(body.prepTime) }),
-      ...(body.cookTime !== undefined && { cookTime: Number(body.cookTime) }),
-      ...(body.difficulty && { difficulty: body.difficulty }),
-      ...(body.servings !== undefined && { servings: Number(body.servings) }),
-      ...(body.status && { status: body.status }),
+      ...(body.prepTime !== undefined && { prepTime: body.prepTime }),
+      ...(body.cookTime !== undefined && { cookTime: body.cookTime }),
+      ...(body.difficulty !== undefined && { difficulty: body.difficulty }),
+      ...(body.servings !== undefined && { servings: body.servings }),
+      ...(body.status !== undefined && { status: body.status }),
       ...(body.videoUrl !== undefined && { videoUrl: body.videoUrl }),
       updatedAt: new Date(),
     })
@@ -161,13 +171,15 @@ app.put("/:id", async (c) => {
 
   if (body.macros !== undefined) {
     await db.delete(macros).where(eq(macros.recipeId, id));
-    await db.insert(macros).values({
-      recipeId: id,
-      kcal: Number(body.macros.kcal) || 0,
-      protein: Number(body.macros.protein) || 0,
-      carbs: Number(body.macros.carbs) || 0,
-      fat: Number(body.macros.fat) || 0,
-    });
+    if (body.macros) {
+      await db.insert(macros).values({
+        recipeId: id,
+        kcal: body.macros.kcal,
+        protein: body.macros.protein,
+        carbs: body.macros.carbs,
+        fat: body.macros.fat,
+      });
+    }
   }
 
   if (body.ingredients !== undefined) {
@@ -177,11 +189,11 @@ app.put("/:id", async (c) => {
         body.ingredients.map((ing, i) => ({
           recipeId: id,
           name: ing.name,
-          quantity: ing.quantity ? Number(ing.quantity) : null,
+          quantity: ing.quantity ?? null,
           unit: ing.unit ?? null,
           note: ing.note ?? null,
           order: i,
-        }))
+        })),
       );
     }
   }
@@ -194,7 +206,7 @@ app.put("/:id", async (c) => {
           recipeId: id,
           content: step.content,
           order: i + 1,
-        }))
+        })),
       );
     }
   }
@@ -204,7 +216,11 @@ app.put("/:id", async (c) => {
 
 app.delete("/:id", async (c) => {
   const id = c.req.param("id");
-  await db.delete(recipes).where(eq(recipes.id, id));
+  const [deleted] = await db
+    .delete(recipes)
+    .where(eq(recipes.id, id))
+    .returning({ id: recipes.id });
+  if (!deleted) return c.json({ error: "Not found" }, 404);
   return c.json({ ok: true });
 });
 

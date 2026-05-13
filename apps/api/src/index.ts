@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { z } from "zod";
 
 import { auth } from "./lib/auth.js";
 import adminCategoriesRoutes from "./routes/admin/categories.js";
@@ -21,12 +22,22 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
     credentials: true,
-  })
+  }),
 );
+
+app.onError((err, c) => {
+  if (err instanceof SyntaxError) {
+    return c.json({ error: "Corps de requete invalide" }, 400);
+  }
+  if (err instanceof z.ZodError) {
+    return c.json({ error: "Validation error", details: err.issues }, 400);
+  }
+  console.error("[API Error]", err);
+  return c.json({ error: "Erreur interne" }, 500);
+});
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
-// Better Auth handles all /api/auth/* routes
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
 app.route("/api/recipes", recipesRoutes);
