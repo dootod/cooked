@@ -98,10 +98,10 @@ export default function AdminRecettesPage() {
       ) : recipes.length === 0 ? (
         <div className="admin-glass rounded-xl text-center py-16 px-8">
           <svg width="64" height="64" viewBox="0 0 80 80" fill="none" className="mx-auto mb-5 opacity-60">
-            <rect x="15" y="10" width="50" height="60" rx="6" stroke="#4F6FE8" strokeWidth="1.5" />
-            <line x1="25" y1="25" x2="55" y2="25" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="25" y1="35" x2="50" y2="35" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
-            <line x1="25" y1="45" x2="45" y2="45" stroke="#C8D4F8" strokeWidth="1.5" strokeLinecap="round" />
+            <rect x="15" y="10" width="50" height="60" rx="6" stroke="#475B8A" strokeWidth="1.5" />
+            <line x1="25" y1="25" x2="55" y2="25" stroke="#BEC8DC" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="25" y1="35" x2="50" y2="35" stroke="#BEC8DC" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="25" y1="45" x2="45" y2="45" stroke="#BEC8DC" strokeWidth="1.5" strokeLinecap="round" />
             <circle cx="57" cy="57" r="14" stroke="#FF8C69" strokeWidth="1.5" />
             <path d="M57 50v14M50 57h14" stroke="#FF8C69" strokeWidth="1.5" strokeLinecap="round" />
           </svg>

@@ -55,35 +55,45 @@ export default function RecipeFilters({
   }
 
   return (
-    <div className="mb-8 space-y-4 public-glass rounded-2xl p-5">
-      {/* Search bar */}
-      <form onSubmit={handleSearch} className="relative max-w-lg">
+    <div className="mb-8 pb-6 border-b border-border/20">
+      {/* Search */}
+      <form onSubmit={handleSearch} className="relative max-w-md">
         <svg
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary"
-          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
         </svg>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher par nom..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/50 border border-border/30 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/10 focus:bg-white transition-all"
+          placeholder="Rechercher une recette..."
+          className="w-full pl-11 pr-4 py-3 rounded-xl bg-white border border-border/40 text-sm text-text placeholder:text-text-tertiary/60 focus:outline-none focus:border-primary focus:ring-3 focus:ring-primary/10 transition-all"
         />
       </form>
 
       {/* Filter pills */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <div className="mt-5 flex flex-wrap items-center gap-x-8 gap-y-3">
         {/* Categories */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest mr-1">Categorie</span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mb-1">
+          <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.1em] shrink-0 mr-1">
+            Categorie
+          </span>
           <button
             onClick={() => router.push(buildUrl({ category: "" }))}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
               !currentCategory
-                ? "bg-primary text-white shadow-sm shadow-primary/20"
-                : "bg-white/60 border border-border/30 text-text-secondary hover:border-primary/30 hover:text-primary"
+                ? "bg-primary text-white shadow-sm shadow-primary/25"
+                : "bg-white border border-border/40 text-text-secondary hover:border-primary/40 hover:text-primary"
             }`}
           >
             Toutes
@@ -92,10 +102,10 @@ export default function RecipeFilters({
             <button
               key={cat.id}
               onClick={() => router.push(buildUrl({ category: cat.slug }))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                 currentCategory === cat.slug
-                  ? "bg-primary text-white shadow-sm shadow-primary/20"
-                  : "bg-white/60 border border-border/30 text-text-secondary hover:border-primary/30 hover:text-primary"
+                  ? "bg-primary text-white shadow-sm shadow-primary/25"
+                  : "bg-white border border-border/40 text-text-secondary hover:border-primary/40 hover:text-primary"
               }`}
             >
               {cat.name}
@@ -105,15 +115,18 @@ export default function RecipeFilters({
 
         {/* Difficulty */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest mr-1">Difficulte</span>
+          <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.1em] mr-1">
+            Difficulte
+          </span>
           {difficulties.map((d) => (
             <button
               key={d.value}
               onClick={() => router.push(buildUrl({ difficulty: d.value }))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                currentDifficulty === d.value || (!currentDifficulty && d.value === "")
-                  ? "bg-primary text-white shadow-sm shadow-primary/20"
-                  : "bg-white/60 border border-border/30 text-text-secondary hover:border-primary/30 hover:text-primary"
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                currentDifficulty === d.value ||
+                (!currentDifficulty && d.value === "")
+                  ? "bg-primary text-white shadow-sm shadow-primary/25"
+                  : "bg-white border border-border/40 text-text-secondary hover:border-primary/40 hover:text-primary"
               }`}
             >
               {d.label}
@@ -122,15 +135,19 @@ export default function RecipeFilters({
         </div>
 
         {/* Sort */}
-        <div className="flex items-center gap-1.5 ml-auto">
-          <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-widest mr-1">Tri</span>
+        <div className="flex items-center gap-1.5 sm:ml-auto">
+          <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-[0.1em] mr-1">
+            Tri
+          </span>
           <select
             value={currentSort || "recent"}
             onChange={(e) => router.push(buildUrl({ sort: e.target.value }))}
-            className="px-3 py-1.5 rounded-lg bg-white/60 border border-border/30 text-xs font-medium text-text-secondary focus:outline-none focus:border-primary/40 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg bg-white border border-border/40 text-xs font-medium text-text-secondary focus:outline-none focus:border-primary/40 cursor-pointer"
           >
             {sorts.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
             ))}
           </select>
         </div>

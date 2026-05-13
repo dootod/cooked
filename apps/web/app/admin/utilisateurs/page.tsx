@@ -78,8 +78,8 @@ export default function AdminUtilisateursPage() {
       ) : users.length === 0 ? (
         <div className="admin-glass rounded-xl text-center py-16 px-8">
           <svg width="64" height="64" viewBox="0 0 80 80" fill="none" className="mx-auto mb-5 opacity-60">
-            <circle cx="32" cy="24" r="10" stroke="#4F6FE8" strokeWidth="1.5" />
-            <path d="M14 56a18 18 0 0 1 36 0" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="32" cy="24" r="10" stroke="#475B8A" strokeWidth="1.5" />
+            <path d="M14 56a18 18 0 0 1 36 0" stroke="#475B8A" strokeWidth="1.5" strokeLinecap="round" />
             <circle cx="54" cy="30" r="8" stroke="#FF8C69" strokeWidth="1.5" />
             <path d="M42 60a14 14 0 0 1 24 0" stroke="#FF8C69" strokeWidth="1.5" strokeLinecap="round" />
           </svg>

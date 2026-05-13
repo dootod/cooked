@@ -100,7 +100,7 @@ export default function InscriptionPage() {
           ].map((feature) => (
             <div key={feature} className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4F6FE8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#475B8A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>

@@ -157,11 +157,11 @@ export default function AdminCategoriesPage() {
       ) : categories.length === 0 && !creating ? (
         <div className="admin-glass rounded-xl text-center py-16 px-8">
           <svg width="64" height="64" viewBox="0 0 80 80" fill="none" className="mx-auto mb-5 opacity-60">
-            <rect x="8" y="12" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" />
+            <rect x="8" y="12" width="28" height="24" rx="6" stroke="#475B8A" strokeWidth="1.5" />
             <rect x="44" y="12" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
             <rect x="8" y="44" width="28" height="24" rx="6" stroke="#FF8C69" strokeWidth="1.5" />
-            <rect x="44" y="44" width="28" height="24" rx="6" stroke="#4F6FE8" strokeWidth="1.5" strokeDasharray="4 3" />
-            <path d="M58 52v14M51 59h14" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" />
+            <rect x="44" y="44" width="28" height="24" rx="6" stroke="#475B8A" strokeWidth="1.5" strokeDasharray="4 3" />
+            <path d="M58 52v14M51 59h14" stroke="#475B8A" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           <h3 className="text-[16px] font-semibold text-text mb-1.5">Aucune categorie</h3>
           <p className="text-[13px] text-text-secondary mb-5">Commencez par en creer une.</p>
@@ -193,7 +193,7 @@ export default function AdminCategoriesPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475B8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
                         <path d="M7 7h.01" />
                       </svg>

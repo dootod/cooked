@@ -37,7 +37,7 @@
 - IDs en `text` avec `crypto.randomUUID()`
 
 ## Design system
-- Primaire : `#4F6FE8` (indigo)
+- Primaire : `#475B8A` (bleu ardoise)
 - Accent : `#FF8C69` (pêche corail)
 - Fond : `#F6F8FF`
 - Fonts : Playfair Display (titres), Inter (UI), JetBrains Mono (macros/données)

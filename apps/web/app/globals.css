@@ -3,13 +3,13 @@
 @theme {
   --color-bg: #F6F8FF;
   --color-surface: #FFFFFF;
-  --color-primary: #4F6FE8;
-  --color-primary-hover: #3D5BD6;
-  --color-primary-light: #EEF2FF;
+  --color-primary: #475B8A;
+  --color-primary-hover: #3A4E78;
+  --color-primary-light: #EEF1F7;
   --color-accent: #FF8C69;
   --color-accent-hover: #FF7A52;
   --color-accent-light: #FFE4DA;
-  --color-border: #C8D4F8;
+  --color-border: #BEC8DC;
   --color-text: #1A1A2E;
   --color-text-secondary: #6B7A99;
   --color-text-tertiary: #9CA8BF;
@@ -48,20 +48,20 @@ body {
 }
 
 .admin-gradient-bar {
-  background: linear-gradient(90deg, #4F6FE8, #FF8C69, #a78bfa, #4F6FE8);
+  background: linear-gradient(90deg, #475B8A, #FF8C69, #a78bfa, #475B8A);
   background-size: 300% 100%;
   animation: admin-gradient-flow 4s ease-in-out infinite;
 }
 
 .admin-dot-grid {
-  background-image: radial-gradient(rgba(79, 111, 232, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(71, 91, 138, 0.06) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
 .admin-glass {
   backdrop-filter: blur(20px) saturate(1.8);
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(200, 212, 248, 0.3);
+  border: 1px solid rgba(190, 200, 220, 0.3);
 }
 
 .admin-fade-up {
@@ -70,7 +70,7 @@ body {
 
 /* Futuristic Dashboard */
 .admin-gradient-text {
-  background: linear-gradient(135deg, #4F6FE8, #FF8C69, #a78bfa, #4F6FE8);
+  background: linear-gradient(135deg, #475B8A, #FF8C69, #a78bfa, #475B8A);
   background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -82,16 +82,16 @@ body {
   position: relative;
   backdrop-filter: blur(20px) saturate(1.8);
   background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(200, 212, 248, 0.3);
+  border: 1px solid rgba(190, 200, 220, 0.3);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-glow-card:hover {
-  border-color: rgba(79, 111, 232, 0.15);
+  border-color: rgba(71, 91, 138, 0.15);
   transform: translateY(-2px);
   box-shadow:
-    0 8px 40px var(--card-shadow, rgba(79, 111, 232, 0.08)),
-    0 0 60px var(--card-glow, rgba(79, 111, 232, 0.04));
+    0 8px 40px var(--card-shadow, rgba(71, 91, 138, 0.08)),
+    0 0 60px var(--card-glow, rgba(71, 91, 138, 0.04));
 }
 
 @keyframes admin-shimmer {
@@ -142,35 +142,35 @@ body {
 }
 
 .public-dot-grid {
-  background-image: radial-gradient(rgba(79, 111, 232, 0.07) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(71, 91, 138, 0.07) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .public-glass {
   backdrop-filter: blur(20px) saturate(1.8);
   background: rgba(255, 255, 255, 0.65);
-  border: 1px solid rgba(200, 212, 248, 0.25);
+  border: 1px solid rgba(190, 200, 220, 0.25);
 }
 
 .public-glass-dark {
   background: #0F1629;
-  border: 1px solid rgba(79, 111, 232, 0.08);
+  border: 1px solid rgba(71, 91, 138, 0.08);
 }
 
 .public-glow-card {
   position: relative;
   backdrop-filter: blur(16px) saturate(1.6);
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(200, 212, 248, 0.25);
+  border: 1px solid rgba(190, 200, 220, 0.25);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .public-glow-card:hover {
-  border-color: rgba(79, 111, 232, 0.2);
+  border-color: rgba(71, 91, 138, 0.2);
   transform: translateY(-3px);
   box-shadow:
-    0 12px 40px rgba(79, 111, 232, 0.1),
-    0 0 60px rgba(79, 111, 232, 0.05);
+    0 12px 40px rgba(71, 91, 138, 0.1),
+    0 0 60px rgba(71, 91, 138, 0.05);
 }
 
 .public-fade-up {
@@ -178,7 +178,7 @@ body {
 }
 
 .public-gradient-text {
-  background: linear-gradient(135deg, #4F6FE8, #FF8C69, #a78bfa);
+  background: linear-gradient(135deg, #475B8A, #FF8C69, #a78bfa);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -187,7 +187,7 @@ body {
 /* Auth pages */
 .auth-mesh-bg {
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(79, 111, 232, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 50%, rgba(71, 91, 138, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(255, 140, 105, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 50%),
     #0F1629;

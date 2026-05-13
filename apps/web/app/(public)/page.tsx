@@ -206,9 +206,8 @@ export default async function HomePage() {
       {categories.length > 0 && (
         <>
         <div className="relative">
-          <div className="h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-primary/[0.07] to-transparent blur-sm" />
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-1/3 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-primary/[0.03] to-transparent blur-md" />
         </div>
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-[#0a0f1e]">

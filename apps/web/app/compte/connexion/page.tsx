@@ -78,7 +78,7 @@ export default function ConnexionPage() {
         {/* Decorative element */}
         <div className="relative z-10 hidden lg:flex items-center gap-3">
           <div className="flex -space-x-2">
-            {["#4F6FE8", "#FF8C69", "#A855F7"].map((color) => (
+            {["#475B8A", "#FF8C69", "#A855F7"].map((color) => (
               <div
                 key={color}
                 className="w-8 h-8 rounded-full border-2 border-[#0F1629]"

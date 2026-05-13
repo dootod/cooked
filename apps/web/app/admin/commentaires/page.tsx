@@ -65,11 +65,11 @@ export default function AdminCommentairesPage() {
       ) : comments.length === 0 ? (
         <div className="admin-glass rounded-xl text-center py-16 px-8">
           <svg width="64" height="64" viewBox="0 0 80 80" fill="none" className="mx-auto mb-5 opacity-60">
-            <rect x="10" y="14" width="40" height="28" rx="8" stroke="#4F6FE8" strokeWidth="1.5" />
-            <path d="M18 36v8l8-8" stroke="#4F6FE8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="22" cy="28" r="2" fill="#4F6FE8" />
-            <circle cx="30" cy="28" r="2" fill="#4F6FE8" />
-            <circle cx="38" cy="28" r="2" fill="#4F6FE8" />
+            <rect x="10" y="14" width="40" height="28" rx="8" stroke="#475B8A" strokeWidth="1.5" />
+            <path d="M18 36v8l8-8" stroke="#475B8A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="22" cy="28" r="2" fill="#475B8A" />
+            <circle cx="30" cy="28" r="2" fill="#475B8A" />
+            <circle cx="38" cy="28" r="2" fill="#475B8A" />
             <rect x="30" y="38" width="40" height="24" rx="8" stroke="#FF8C69" strokeWidth="1.5" />
             <path d="M62 62v6l-6-6" stroke="#FF8C69" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             <line x1="40" y1="48" x2="60" y2="48" stroke="#FF8C69" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />

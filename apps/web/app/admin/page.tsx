@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
   }
 
   const kpis = [
-    { key: "total", label: "Recettes", value: animTotal, color: "#4F6FE8", bg: "bg-primary/8" },
+    { key: "total", label: "Recettes", value: animTotal, color: "#475B8A", bg: "bg-primary/8" },
     { key: "published", label: "Publiees", value: animPublished, color: "#22C55E", bg: "bg-emerald-500/8" },
     { key: "draft", label: "Brouillons", value: animDraft, color: "#FF8C69", bg: "bg-accent/8" },
     { key: "categories", label: "Categories", value: animCategories, color: "#A855F7", bg: "bg-purple-500/8" },
