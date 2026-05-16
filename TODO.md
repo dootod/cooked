@@ -16,3 +16,22 @@
 - [x] Pouvoir cocher les ingredients sur les pages des recettes
 - [x] Pouvoir ajouter des recettes aux favoris
 - [x] Mettre a jour la seed en fonction des donnees actuellement presentes sur le site
+- [x] **XSS email templates** — Echapper les variables utilisateur (name, url) dans les templates HTML
+- [x] **Validation name inscription** — Limiter le champ name a 100 caracteres max cote serveur
+- [x] **banExpires check** — Verifier l'expiration du ban dans le middleware auth (debloquer automatiquement)
+- [x] **Proxy cookie prod** — Supporter le prefix `__Secure-` sur le cookie session dans le proxy admin
+- [x] **Password reset validation** — Appliquer les memes regles de complexite que l'inscription sur le reset password
+- [x] **Email leak URL** — Ne plus passer l'email dans l'URL apres inscription
+- [x] **Security headers** — Ajouter X-Content-Type-Options, X-Frame-Options, Referrer-Policy sur toutes les reponses API
+
+## Phase 4 — Securite restante (a faire)
+
+- [ ] **Rate limit persistant** — Remplacer le rate limit in-memory (Map) par un store Redis/Upstash pour survivre aux restarts et scaler horizontalement
+- [ ] **Email verification requise** — Bloquer les actions authentifiees (favoris, commentaires) tant que l'email n'est pas verifie
+- [ ] **Account lockout** — Verrouiller un compte apres 5 echecs de login consecutifs (lockout 15 min). Le rate limit IP seul ne suffit pas contre la rotation d'IP
+- [ ] **CSRF verification** — Verifier que Better Auth valide bien l'origin header contre `trustedOrigins` en production. Tester avec une requete cross-origin form POST
+- [ ] **callbackURL validation** — S'assurer que Better Auth refuse les callbackURL pointant vers des domaines non-trusted (ou hardcoder cote serveur)
+- [ ] **HSTS header** — Ajouter `Strict-Transport-Security: max-age=63072000; includeSubDomains` en production (HTTPS only)
+- [ ] **Pagination admin users** — Ajouter pagination sur GET /api/admin/users (actuellement limit 200 hardcode)
+- [ ] **Logs sensibles** — Passer les logs email (adresses) en mode debug uniquement, pas en info/warn en production
+- [ ] **MFA admin** — Ajouter l'authentification a deux facteurs pour les comptes admin (Better Auth TOTP plugin)

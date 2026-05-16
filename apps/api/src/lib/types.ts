@@ -6,6 +6,7 @@ export type AuthUser = {
   image: string | null;
   banned: boolean | null;
   banReason: string | null;
+  banExpires: string | Date | null;
 };
 
 export type AppEnv = {

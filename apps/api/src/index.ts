@@ -22,6 +22,13 @@ import tagsRoutes from "./routes/tags.js";
 const app = new Hono();
 
 app.use("*", logger());
+app.use("*", async (c, next) => {
+  await next();
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  c.header("X-XSS-Protection", "0");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+});
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());

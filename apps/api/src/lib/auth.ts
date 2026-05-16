@@ -50,6 +50,29 @@ export const auth = betterAuth({
     },
   },
   plugins: [admin()],
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const name = (user.name ?? "").trim();
+          if (name.length === 0) throw new Error("Nom requis");
+          if (name.length > 100) throw new Error("Nom trop long (100 caracteres max)");
+          return { data: { ...user, name } };
+        },
+      },
+      update: {
+        before: async (user) => {
+          if (user.name !== undefined) {
+            const name = (user.name as string).trim();
+            if (name.length === 0) throw new Error("Nom requis");
+            if (name.length > 100) throw new Error("Nom trop long (100 caracteres max)");
+            return { data: { ...user, name } };
+          }
+          return { data: user };
+        },
+      },
+    },
+  },
   session: {
     cookieCache: {
       enabled: true,

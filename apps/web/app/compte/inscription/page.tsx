@@ -59,7 +59,7 @@ export default function InscriptionPage() {
     if (authError) {
       setError(authError.message || "Une erreur est survenue lors de l'inscription.");
     } else if (data) {
-      router.push("/compte/connexion?registered=1&email=" + encodeURIComponent(email));
+      router.push("/compte/connexion?registered=1");
     }
 
     setLoading(false);

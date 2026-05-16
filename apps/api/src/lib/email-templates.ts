@@ -9,6 +9,15 @@ const COLORS = {
   white: "#FFFFFF",
 };
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function layout(content: string): string {
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -70,37 +79,41 @@ function button(url: string, label: string): string {
 }
 
 export function verificationEmail(name: string, url: string): string {
+  const safeName = escapeHtml(name);
+  const safeUrl = escapeHtml(url);
   return layout(`
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${COLORS.text};font-family:Georgia,serif;">
       Bienvenue sur Cooked !
     </h1>
     <p style="margin:0 0 24px;font-size:15px;color:${COLORS.textSecondary};line-height:1.6;">
-      Bonjour ${name}, merci de vous etre inscrit. Verifiez votre adresse email pour activer votre compte.
+      Bonjour ${safeName}, merci de vous etre inscrit. Verifiez votre adresse email pour activer votre compte.
     </p>
     ${button(url, "Verifier mon email")}
     <p style="margin:0;font-size:13px;color:${COLORS.textSecondary};line-height:1.5;">
       Ce lien expire dans 24 heures. Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :
     </p>
     <p style="margin:8px 0 0;font-size:12px;color:${COLORS.primary};word-break:break-all;">
-      ${url}
+      ${safeUrl}
     </p>
   `);
 }
 
 export function resetPasswordEmail(name: string, url: string): string {
+  const safeName = escapeHtml(name);
+  const safeUrl = escapeHtml(url);
   return layout(`
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:${COLORS.text};font-family:Georgia,serif;">
       Reinitialisation de mot de passe
     </h1>
     <p style="margin:0 0 24px;font-size:15px;color:${COLORS.textSecondary};line-height:1.6;">
-      Bonjour ${name}, vous avez demande a reinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
+      Bonjour ${safeName}, vous avez demande a reinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.
     </p>
     ${button(url, "Reinitialiser mon mot de passe")}
     <p style="margin:0;font-size:13px;color:${COLORS.textSecondary};line-height:1.5;">
       Ce lien expire dans 1 heure. Si vous n'avez pas fait cette demande, ignorez simplement cet email.
     </p>
     <p style="margin:8px 0 0;font-size:12px;color:${COLORS.primary};word-break:break-all;">
-      ${url}
+      ${safeUrl}
     </p>
   `);
 }

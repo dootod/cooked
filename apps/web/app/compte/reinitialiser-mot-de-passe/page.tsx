@@ -22,6 +22,18 @@ export default function ReinitialiserMotDePassePage() {
       setError("Le mot de passe doit contenir au moins 8 caracteres.");
       return;
     }
+    if (!/[A-Z]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une majuscule.");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un chiffre.");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un caractere special.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
       return;
