@@ -17,6 +17,8 @@ export async function sendEmail(opts: {
     return;
   }
 
+  console.log("[Email] Sending to", opts.to, "subject:", opts.subject);
+
   const { data, error } = await resend.emails.send({
     from: FROM,
     to: opts.to,
@@ -25,8 +27,9 @@ export async function sendEmail(opts: {
   });
 
   if (error) {
-    console.error("[Email] Resend error:", error);
-  } else {
-    console.log("[Email] Sent to", opts.to, "id:", data?.id);
+    console.error("[Email] Resend error:", JSON.stringify(error));
+    throw new Error(`Email send failed: ${error.message}`);
   }
+
+  console.log("[Email] Sent to", opts.to, "id:", data?.id);
 }

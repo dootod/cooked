@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth";
+import { useSession, signOut, authClient } from "@/lib/auth";
 import { api } from "@/lib/api";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ export default function ProfilPage() {
   const [success, setSuccess] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState("");
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -34,14 +35,21 @@ export default function ProfilPage() {
 
   async function handleResendVerification() {
     setResending(true);
+    setResendError("");
     try {
-      await api.post("/api/auth/send-verification-email", {
-        email: session?.user?.email,
+      const { error } = await authClient.sendVerificationEmail({
+        email: session!.user.email,
         callbackURL: `${window.location.origin}/compte/email-verifie`,
       });
-      setResendSuccess(true);
-      setTimeout(() => setResendSuccess(false), 5000);
-    } catch {}
+      if (error) {
+        setResendError(error.message || "Erreur lors de l'envoi");
+      } else {
+        setResendSuccess(true);
+        setTimeout(() => setResendSuccess(false), 5000);
+      }
+    } catch {
+      setResendError("Erreur lors de l'envoi de l'email");
+    }
     setResending(false);
   }
 
@@ -147,15 +155,20 @@ export default function ProfilPage() {
               className="w-full px-4 py-2.5 text-[14px] text-text-secondary bg-bg border border-border/30 rounded-xl cursor-not-allowed"
             />
             {!user.emailVerified && (
-              <div className="mt-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleResendVerification}
-                  disabled={resending || resendSuccess}
-                  className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors disabled:opacity-60 cursor-pointer"
-                >
-                  {resending ? "Envoi..." : resendSuccess ? "Email envoye !" : "Renvoyer l'email de verification"}
-                </button>
+              <div className="mt-2 space-y-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={resending || resendSuccess}
+                    className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors disabled:opacity-60 cursor-pointer"
+                  >
+                    {resending ? "Envoi..." : resendSuccess ? "Email envoye !" : "Renvoyer l'email de verification"}
+                  </button>
+                </div>
+                {resendError && (
+                  <p className="text-[11px] text-red-500">{resendError}</p>
+                )}
               </div>
             )}
             {user.emailVerified && (

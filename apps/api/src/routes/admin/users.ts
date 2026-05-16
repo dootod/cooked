@@ -44,6 +44,31 @@ app.get("/", async (c) => {
   return c.json({ users: rows });
 });
 
+app.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const currentUser = c.get("user");
+
+  if (id === currentUser.id) {
+    return c.json({ error: "Impossible de supprimer votre propre compte" }, 400);
+  }
+
+  const [deleted] = await db
+    .delete(user)
+    .where(eq(user.id, id))
+    .returning({ id: user.id });
+
+  if (!deleted) return c.json({ error: "Not found" }, 404);
+
+  await logAudit({
+    userId: currentUser.id,
+    action: "user.delete",
+    targetId: id,
+    targetType: "user",
+  });
+
+  return c.json({ success: true });
+});
+
 app.patch("/:id", async (c) => {
   const id = c.req.param("id");
   const currentUser = c.get("user");

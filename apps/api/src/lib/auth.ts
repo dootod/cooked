@@ -23,22 +23,30 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     maxPasswordLength: 128,
     sendResetPassword: async ({ user: u, url }) => {
-      await sendEmail({
-        to: u.email,
-        subject: "Reinitialiser votre mot de passe — Cooked",
-        html: resetPasswordEmail(u.name, url),
-      });
+      try {
+        await sendEmail({
+          to: u.email,
+          subject: "Reinitialiser votre mot de passe — Cooked",
+          html: resetPasswordEmail(u.name, url),
+        });
+      } catch (err) {
+        console.error("[Auth] Failed to send reset password email:", err);
+      }
     },
   },
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user: u, url }) => {
-      await sendEmail({
-        to: u.email,
-        subject: "Verifiez votre email — Cooked",
-        html: verificationEmail(u.name, url),
-      });
+      try {
+        await sendEmail({
+          to: u.email,
+          subject: "Verifiez votre email — Cooked",
+          html: verificationEmail(u.name, url),
+        });
+      } catch (err) {
+        console.error("[Auth] Failed to send verification email:", err);
+      }
     },
   },
   plugins: [admin()],

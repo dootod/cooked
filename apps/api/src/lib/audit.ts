@@ -4,6 +4,7 @@ export type AuditAction =
   | "user.ban"
   | "user.unban"
   | "user.role_change"
+  | "user.delete"
   | "recipe.delete"
   | "recipe.create"
   | "recipe.update"
