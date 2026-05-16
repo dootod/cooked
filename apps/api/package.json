@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "seed:admin": "tsx --env-file=.env src/scripts/seed-admin.ts"
+    "seed:admin": "tsx --env-file=.env src/scripts/seed-admin.ts",
+    "seed": "tsx --env-file=.env src/scripts/seed.ts"
   },
   "dependencies": {
     "@cooked/db": "workspace:*",
@@ -16,6 +17,7 @@
     "better-auth": "^1.6.10",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.12.18",
+    "resend": "^6.12.3",
     "zod": "^4.4.3"
   },
   "devDependencies": {

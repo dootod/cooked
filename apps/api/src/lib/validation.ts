@@ -41,6 +41,7 @@ export const createRecipeSchema = z.object({
     .max(50)
     .optional(),
   categoryIds: z.array(z.string().max(100)).max(20).optional(),
+  tagIds: z.array(z.string().max(100)).max(30).optional(),
   medias: z
     .array(
       z.object({

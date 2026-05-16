@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RecipeClientFeatures } from "./RecipeClientFeatures";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -56,12 +57,6 @@ const difficultyLabel: Record<string, string> = {
   intermediate: "Moyen",
   hard: "Difficile",
 };
-
-function formatQuantity(qty: number | null): string {
-  if (qty === null) return "";
-  if (qty === Math.floor(qty)) return String(qty);
-  return qty.toFixed(1);
-}
 
 function getVideoEmbedUrl(url: string): string | null {
   const ytMatch = url.match(
@@ -233,22 +228,10 @@ export default async function RecetteDetailPage({
               </div>
             </div>
           </div>
-          {recipe.macros && (
-            <div className="hidden lg:flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-primary/8 text-xs font-mono font-semibold text-primary">
-                {Math.round(recipe.macros.kcal)} kcal
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-accent/8 text-xs font-mono font-semibold text-accent">
-                {Math.round(recipe.macros.protein)}g prot
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-text/[0.04] text-xs font-mono text-text-secondary">
-                {Math.round(recipe.macros.carbs)}g gluc
-              </span>
-              <span className="px-2.5 py-1 rounded-lg bg-text/[0.04] text-xs font-mono text-text-secondary">
-                {Math.round(recipe.macros.fat)}g lip
-              </span>
-            </div>
-          )}
+          <RecipeClientFeatures
+            recipeId={recipe.id}
+            section="favorite-button"
+          />
         </div>
       </div>
 
@@ -258,40 +241,14 @@ export default async function RecetteDetailPage({
           {/* SIDEBAR */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-24 space-y-5">
-              {/* Ingredients */}
-              <div className="rounded-2xl overflow-hidden border border-border/30">
-                <div className="bg-primary/[0.06] px-5 py-3.5 flex items-center gap-2.5">
-                  <svg className="text-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
-                    <line x1="6" y1="17" x2="18" y2="17" />
-                  </svg>
-                  <h3 className="font-serif font-bold text-text">Ingredients</h3>
-                  <span className="text-sm text-text-tertiary font-normal ml-auto">
-                    {recipe.servings} portions
-                  </span>
-                </div>
-                <div className="bg-white p-5">
-                  <ul className="space-y-3">
-                    {recipe.ingredients.map((ing) => (
-                      <li key={ing.id} className="flex items-start gap-3 text-sm group">
-                        <span className="shrink-0 mt-1 w-5 h-5 rounded-md border-2 border-border/50 group-hover:border-primary/40 transition-colors" />
-                        <span className="text-text">
-                          {ing.quantity !== null && (
-                            <span className="font-mono font-semibold text-primary">
-                              {formatQuantity(ing.quantity)}
-                              {ing.unit ? ` ${ing.unit}` : ""}
-                            </span>
-                          )}{" "}
-                          {ing.name}
-                          {ing.note && (
-                            <span className="text-text-tertiary"> ({ing.note})</span>
-                          )}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
+              {/* Ingredients with portion calculator */}
+              <RecipeClientFeatures
+                recipeId={recipe.id}
+                section="ingredients"
+                ingredients={recipe.ingredients}
+                baseServings={recipe.servings}
+                macros={recipe.macros}
+              />
 
               {/* Equipment */}
               {recipe.equipment.length > 0 && (
@@ -311,41 +268,6 @@ export default async function RecetteDetailPage({
                         {eq.name}
                       </span>
                     ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Macros (mobile — desktop shows in stats bar) */}
-              {recipe.macros && (
-                <div className="p-5 rounded-2xl bg-white border border-border/30 lg:hidden">
-                  <h3 className="text-sm font-semibold text-text mb-3">
-                    Macros par portion
-                  </h3>
-                  <div className="grid grid-cols-4 gap-2">
-                    <div className="text-center">
-                      <p className="text-lg font-bold font-mono text-primary">
-                        {Math.round(recipe.macros.kcal)}
-                      </p>
-                      <p className="text-[10px] text-text-tertiary uppercase">kcal</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold font-mono text-accent">
-                        {Math.round(recipe.macros.protein)}g
-                      </p>
-                      <p className="text-[10px] text-text-tertiary uppercase">prot</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold font-mono text-text">
-                        {Math.round(recipe.macros.carbs)}g
-                      </p>
-                      <p className="text-[10px] text-text-tertiary uppercase">glucides</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-lg font-bold font-mono text-text">
-                        {Math.round(recipe.macros.fat)}g
-                      </p>
-                      <p className="text-[10px] text-text-tertiary uppercase">lipides</p>
-                    </div>
                   </div>
                 </div>
               )}

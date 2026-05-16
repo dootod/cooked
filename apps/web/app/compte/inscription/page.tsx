@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signUp } from "@/lib/auth";
+import { signUp, useSession } from "@/lib/auth";
 
 export default function InscriptionPage() {
   const [name, setName] = useState("");
@@ -13,6 +13,13 @@ export default function InscriptionPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      router.replace("/");
+    }
+  }, [session, isPending, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { commentStatusSchema } from "../../lib/validation.js";
+import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
 const app = new Hono<AppEnv>();
@@ -20,6 +21,7 @@ app.get("/", async (c) => {
 
 app.patch("/:id", async (c) => {
   const id = c.req.param("id");
+  const currentUser = c.get("user");
   const raw = await c.req.json();
   const result = commentStatusSchema.safeParse(raw);
   if (!result.success) {
@@ -33,6 +35,14 @@ app.patch("/:id", async (c) => {
     .returning();
 
   if (!comment) return c.json({ error: "Not found" }, 404);
+
+  await logAudit({
+    userId: currentUser.id,
+    action: result.data.status === "approved" ? "comment.approve" : "comment.reject",
+    targetId: id,
+    targetType: "comment",
+  });
+
   return c.json({ comment });
 });
 

@@ -4,6 +4,7 @@ import { eq, count, desc } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { userPatchSchema } from "../../lib/validation.js";
+import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
 async function revokeUserSessions(userId: string) {
@@ -82,6 +83,30 @@ app.patch("/:id", async (c) => {
 
   if (body.banned === true) {
     await revokeUserSessions(id);
+    await logAudit({
+      userId: currentUser.id,
+      action: "user.ban",
+      targetId: id,
+      targetType: "user",
+      metadata: { reason: body.banReason },
+    });
+  } else if (body.banned === false) {
+    await logAudit({
+      userId: currentUser.id,
+      action: "user.unban",
+      targetId: id,
+      targetType: "user",
+    });
+  }
+
+  if (body.role !== undefined) {
+    await logAudit({
+      userId: currentUser.id,
+      action: "user.role_change",
+      targetId: id,
+      targetType: "user",
+      metadata: { newRole: body.role },
+    });
   }
 
   return c.json({ user: updated });

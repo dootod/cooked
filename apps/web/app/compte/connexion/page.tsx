@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "@/lib/auth";
+import { signIn, useSession } from "@/lib/auth";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -11,6 +11,13 @@ export default function ConnexionPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { data: session, isPending } = useSession();
+
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      router.replace(session.user.role === "admin" ? "/admin" : "/");
+    }
+  }, [session, isPending, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -142,6 +149,15 @@ export default function ConnexionPage() {
                 placeholder="••••••••"
                 className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
               />
+            </div>
+
+            <div className="flex justify-end">
+              <Link
+                href="/compte/mot-de-passe-oublie"
+                className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
+              >
+                Mot de passe oublie ?
+              </Link>
             </div>
 
             {error && (

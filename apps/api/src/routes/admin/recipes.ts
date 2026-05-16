@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, recipes, ingredients, steps, macros, medias, recipesCategories } from "@cooked/db";
+import { db, recipes, ingredients, steps, macros, medias, recipesCategories, recipesTags } from "@cooked/db";
 import { desc, eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
@@ -8,6 +8,7 @@ import {
   createRecipeSchema,
   updateRecipeSchema,
 } from "../../lib/validation.js";
+import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
 async function withTransaction<T>(fn: (tx: typeof db) => Promise<T>): Promise<T> {
@@ -37,7 +38,7 @@ app.get("/:id", async (c) => {
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
 
-  const [recipeIngredients, recipeSteps, recipeMacro, recipeMedias, recipeCategories] =
+  const [recipeIngredients, recipeSteps, recipeMacro, recipeMedias, recipeCategories, recipeTags] =
     await Promise.all([
       db
         .select()
@@ -52,6 +53,7 @@ app.get("/:id", async (c) => {
       db.select().from(macros).where(eq(macros.recipeId, recipe.id)).limit(1),
       db.select().from(medias).where(eq(medias.recipeId, recipe.id)),
       db.select({ categoryId: recipesCategories.categoryId }).from(recipesCategories).where(eq(recipesCategories.recipeId, recipe.id)),
+      db.select({ tagId: recipesTags.tagId }).from(recipesTags).where(eq(recipesTags.recipeId, recipe.id)),
     ]);
 
   return c.json({
@@ -62,6 +64,7 @@ app.get("/:id", async (c) => {
       macros: recipeMacro[0] ?? null,
       medias: recipeMedias,
       categoryIds: recipeCategories.map((rc) => rc.categoryId),
+      tagIds: recipeTags.map((rt) => rt.tagId),
     },
   });
 });
@@ -139,6 +142,15 @@ app.post("/", async (c) => {
         body.categoryIds.map((categoryId) => ({
           recipeId: created.id,
           categoryId,
+        })),
+      );
+    }
+
+    if (body.tagIds?.length) {
+      await tx.insert(recipesTags).values(
+        body.tagIds.map((tagId) => ({
+          recipeId: created.id,
+          tagId,
         })),
       );
     }
@@ -254,6 +266,18 @@ app.put("/:id", async (c) => {
       }
     }
 
+    if (body.tagIds !== undefined) {
+      await tx.delete(recipesTags).where(eq(recipesTags.recipeId, id));
+      if (body.tagIds.length) {
+        await tx.insert(recipesTags).values(
+          body.tagIds.map((tagId) => ({
+            recipeId: id,
+            tagId,
+          })),
+        );
+      }
+    }
+
     if (body.medias !== undefined) {
       await tx.delete(medias).where(eq(medias.recipeId, id));
       if (body.medias.length) {
@@ -278,11 +302,20 @@ app.put("/:id", async (c) => {
 
 app.delete("/:id", async (c) => {
   const id = c.req.param("id");
+  const currentUser = c.get("user");
   const [deleted] = await db
     .delete(recipes)
     .where(eq(recipes.id, id))
     .returning({ id: recipes.id });
   if (!deleted) return c.json({ error: "Not found" }, 404);
+
+  await logAudit({
+    userId: currentUser.id,
+    action: "recipe.delete",
+    targetId: id,
+    targetType: "recipe",
+  });
+
   return c.json({ ok: true });
 });
 

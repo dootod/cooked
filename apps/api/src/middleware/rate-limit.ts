@@ -12,13 +12,18 @@ setInterval(() => {
 export function rateLimit(opts: {
   windowMs: number;
   max: number;
+  keyFn?: (c: { ip: string; userId?: string; method: string; path: string }) => string;
 }): MiddlewareHandler {
   return async (c, next) => {
     const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
     const realIp = c.req.header("x-real-ip");
-    // Prefer x-forwarded-for behind trusted proxy, fall back to x-real-ip, then "unknown"
     const ip = forwarded || realIp || "unknown";
-    const key = `${ip}:${c.req.method}:${c.req.path}`;
+    const userId = c.get("user")?.id as string | undefined;
+
+    const key = opts.keyFn
+      ? opts.keyFn({ ip, userId, method: c.req.method, path: c.req.path })
+      : `${ip}:${c.req.method}:${c.req.path}`;
+
     const now = Date.now();
     const record = store.get(key);
 
@@ -37,4 +42,17 @@ export function rateLimit(opts: {
 
     await next();
   };
+}
+
+export function userRateLimit(opts: {
+  windowMs: number;
+  max: number;
+}): MiddlewareHandler {
+  return rateLimit({
+    ...opts,
+    keyFn: ({ ip, userId, method, path }) => {
+      const id = userId ?? ip;
+      return `user:${id}:${method}:${path}`;
+    },
+  });
 }

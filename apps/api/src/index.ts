@@ -6,12 +6,14 @@ import { logger } from "hono/logger";
 import { z } from "zod";
 
 import { auth } from "./lib/auth.js";
-import { rateLimit } from "./middleware/rate-limit.js";
+import { rateLimit, userRateLimit } from "./middleware/rate-limit.js";
 import adminCategoriesRoutes from "./routes/admin/categories.js";
 import adminCommentsRoutes from "./routes/admin/comments.js";
 import adminRecipesRoutes from "./routes/admin/recipes.js";
 import adminUploadRoutes from "./routes/admin/upload.js";
 import adminUsersRoutes from "./routes/admin/users.js";
+import adminCleanupRoutes from "./routes/admin/cleanup.js";
+import adminTagsRoutes from "./routes/admin/tags.js";
 import categoriesRoutes from "./routes/categories.js";
 import meRoutes from "./routes/me.js";
 import recipesRoutes from "./routes/recipes.js";
@@ -20,10 +22,14 @@ import tagsRoutes from "./routes/tags.js";
 const app = new Hono();
 
 app.use("*", logger());
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim());
+
 app.use(
   "*",
   cors({
-    origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
@@ -51,9 +57,13 @@ app.use("/uploads/*", serveStatic({ root: "./" }));
 app.use("/api/auth/*", rateLimit({ windowMs: 60_000, max: 10 }));
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
+app.use("/api/recipes/*", rateLimit({ windowMs: 60_000, max: 100 }));
+app.use("/api/categories/*", rateLimit({ windowMs: 60_000, max: 100 }));
+app.use("/api/tags/*", rateLimit({ windowMs: 60_000, max: 100 }));
 app.route("/api/recipes", recipesRoutes);
 app.route("/api/categories", categoriesRoutes);
 app.route("/api/tags", tagsRoutes);
+app.use("/api/me/*", userRateLimit({ windowMs: 60_000, max: 30 }));
 app.route("/api/me", meRoutes);
 
 app.use("/api/admin/upload/*", rateLimit({ windowMs: 60_000, max: 20 }));
@@ -63,6 +73,8 @@ app.route("/api/admin/categories", adminCategoriesRoutes);
 app.route("/api/admin/comments", adminCommentsRoutes);
 app.route("/api/admin/upload", adminUploadRoutes);
 app.route("/api/admin/users", adminUsersRoutes);
+app.route("/api/admin/tags", adminTagsRoutes);
+app.route("/api/admin/cleanup", adminCleanupRoutes);
 
 const port = Number(process.env.PORT ?? 3001);
 
