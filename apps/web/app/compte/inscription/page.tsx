@@ -53,12 +53,13 @@ export default function InscriptionPage() {
       email,
       password,
       name,
+      callbackURL: `${window.location.origin}/compte/email-verifie`,
     });
 
     if (authError) {
       setError(authError.message || "Une erreur est survenue lors de l'inscription.");
     } else if (data) {
-      router.push("/compte/connexion?registered=1");
+      router.push("/compte/connexion?registered=1&email=" + encodeURIComponent(email));
     }
 
     setLoading(false);

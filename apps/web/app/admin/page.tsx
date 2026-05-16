@@ -245,7 +245,7 @@ export default function AdminDashboardPage() {
                 { name: "PostgreSQL", status: "ok", detail: "Drizzle ORM", color: "bg-emerald-400" },
                 { name: "Better Auth", status: "ok", detail: `${stats?.users ?? 0} comptes`, color: "bg-emerald-400" },
                 { name: "Stockage R2", status: "pending", detail: "Non configure", color: "bg-amber-400" },
-                { name: "Emails Resend", status: "pending", detail: "Non configure", color: "bg-amber-400" },
+                { name: "Emails Resend", status: "ok", detail: "Connecte", color: "bg-emerald-400" },
               ].map((svc) => (
                 <div key={svc.name} className="flex items-center justify-between py-1.5">
                   <div className="flex items-center gap-2.5">

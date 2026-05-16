@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
 import { db, user, session, account, verification } from "@cooked/db";
 import { sendEmail } from "./email.js";
+import { verificationEmail, resetPasswordEmail } from "./email-templates.js";
 
 if (!process.env.BETTER_AUTH_SECRET) {
   throw new Error("BETTER_AUTH_SECRET env var is required");
@@ -25,30 +26,18 @@ export const auth = betterAuth({
       await sendEmail({
         to: u.email,
         subject: "Reinitialiser votre mot de passe — Cooked",
-        html: `
-          <h2>Reinitialisation de mot de passe</h2>
-          <p>Bonjour ${u.name},</p>
-          <p>Cliquez sur le lien ci-dessous pour reinitialiser votre mot de passe :</p>
-          <p><a href="${url}">Reinitialiser mon mot de passe</a></p>
-          <p>Ce lien expire dans 1 heure.</p>
-          <p>Si vous n'avez pas demande cette reinitialisation, ignorez cet email.</p>
-        `,
+        html: resetPasswordEmail(u.name, url),
       });
     },
   },
   emailVerification: {
     sendOnSignUp: true,
+    autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user: u, url }) => {
       await sendEmail({
         to: u.email,
         subject: "Verifiez votre email — Cooked",
-        html: `
-          <h2>Bienvenue sur Cooked !</h2>
-          <p>Bonjour ${u.name},</p>
-          <p>Cliquez sur le lien ci-dessous pour verifier votre adresse email :</p>
-          <p><a href="${url}">Verifier mon email</a></p>
-          <p>Ce lien expire dans 24 heures.</p>
-        `,
+        html: verificationEmail(u.name, url),
       });
     },
   },
