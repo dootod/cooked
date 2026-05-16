@@ -28,6 +28,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
+  icon: text("icon").notNull().default("utensils"),
   order: integer("order").notNull().default(0),
 });
 

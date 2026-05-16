@@ -35,7 +35,8 @@ app.get("/", async (c) => {
   const conditions = [eq(recipes.status, "published")];
 
   if (search) {
-    conditions.push(ilike(recipes.title, `%${search}%`));
+    const sanitized = search.replace(/[%_\\]/g, "\\$&");
+    conditions.push(ilike(recipes.title, `%${sanitized}%`));
   }
   if (difficulty && VALID_DIFFICULTIES.includes(difficulty as typeof VALID_DIFFICULTIES[number])) {
     conditions.push(eq(recipes.difficulty, difficulty as "easy" | "intermediate" | "hard"));

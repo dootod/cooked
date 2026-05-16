@@ -1,6 +1,7 @@
 import Link from "next/link";
 import RecipeCard from "@/components/public/RecipeCard";
 import RecipeFilters from "@/components/public/RecipeFilters";
+import { AnimatedSection, AnimatedCard } from "@/components/public/AnimatedSection";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -133,7 +134,7 @@ export default async function RecettesPage({
             <span className="text-white/40">Recettes</span>
           </nav>
 
-          <div className="max-w-3xl">
+          <div className="max-w-3xl animate-slide-in-up">
             <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-serif font-bold text-white leading-[1.12] tracking-tight">
               {search ? (
                 <>
@@ -225,15 +226,15 @@ export default async function RecettesPage({
             {/* Featured recipe */}
             {showFeatured && (
               <div className="mb-10">
-                <div className="flex items-center gap-3 mb-4">
+                <AnimatedSection animation="fade-left" className="flex items-center gap-3 mb-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-tertiary">
                     Mise en avant
                   </p>
                   <div className="flex-1 h-px bg-gradient-to-r from-border/30 to-transparent" />
-                </div>
-                <div className="public-fade-up">
+                </AnimatedSection>
+                <AnimatedCard index={0}>
                   <RecipeCard recipe={recipes[0]} size="hero" />
-                </div>
+                </AnimatedCard>
               </div>
             )}
 
@@ -248,13 +249,9 @@ export default async function RecettesPage({
             {/* Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {gridRecipes.map((recipe, i) => (
-                <div
-                  key={recipe.id}
-                  className="public-fade-up"
-                  style={{ animationDelay: `${i * 50}ms` }}
-                >
+                <AnimatedCard key={recipe.id} index={i}>
                   <RecipeCard recipe={recipe} size="medium" />
-                </div>
+                </AnimatedCard>
               ))}
             </div>
           </>

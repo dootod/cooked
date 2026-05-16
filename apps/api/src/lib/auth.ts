@@ -16,6 +16,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
   },
   plugins: [admin()],
   trustedOrigins: [process.env.CORS_ORIGIN ?? "http://localhost:3000"],

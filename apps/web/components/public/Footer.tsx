@@ -1,14 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export default function Footer() {
   const pathname = usePathname();
   const isDark = pathname === "/";
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/categories`)
+      .then((r) => (r.ok ? r.json() : { categories: [] }))
+      .then((d) => setCategories(d.categories?.slice(0, 4) ?? []))
+      .catch(() => {});
+  }, []);
 
   return (
-    <footer className="relative">
+    <footer className="relative animate-slide-in-up">
       {!isDark && (
         <div className="relative">
           <div className="h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
@@ -58,48 +75,36 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/recettes?sort=recent"
+                    href="/categories"
                     className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
                   >
-                    Nouveautes
+                    Categories
                   </Link>
                 </li>
               </ul>
             </div>
 
-            <div>
-              <h3
-                className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? "text-white/50" : "text-text"}`}
-              >
-                Categories
-              </h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/categories/plat"
-                    className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
-                  >
-                    Plats
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/categories/dessert"
-                    className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
-                  >
-                    Desserts
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/categories/entree"
-                    className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
-                  >
-                    Entrees
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            {categories.length > 0 && (
+              <div>
+                <h3
+                  className={`text-xs font-semibold uppercase tracking-wider mb-3 ${isDark ? "text-white/50" : "text-text"}`}
+                >
+                  Categories
+                </h3>
+                <ul className="space-y-2">
+                  {categories.map((cat) => (
+                    <li key={cat.id}>
+                      <Link
+                        href={`/categories/${cat.slug}`}
+                        className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
+                      >
+                        {cat.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <div>
               <h3

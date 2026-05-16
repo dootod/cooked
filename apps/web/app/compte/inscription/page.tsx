@@ -22,6 +22,18 @@ export default function InscriptionPage() {
       setError("Le mot de passe doit contenir au moins 8 caractères.");
       return;
     }
+    if (!/[A-Z]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une majuscule.");
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un chiffre.");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un caractère spécial.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError("Les mots de passe ne correspondent pas.");
@@ -46,7 +58,7 @@ export default function InscriptionPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-8rem)]">
       {/* Left — Decorative panel */}
       <div className="relative overflow-hidden auth-mesh-bg lg:w-[45%] xl:w-[40%] shrink-0 flex flex-col justify-between p-8 sm:p-12 lg:p-14">
         {/* Floating orbs */}
@@ -122,7 +134,7 @@ export default function InscriptionPage() {
 
       {/* Right — Form panel */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-bg">
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-[420px] animate-slide-in-right">
           {/* Header (desktop only) */}
           <div className="hidden lg:block mb-10">
             <h1 className="text-[30px] font-bold text-text tracking-tight font-serif">
@@ -172,7 +184,7 @@ export default function InscriptionPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                placeholder="8 caractères minimum"
+                placeholder="Min. 8 car., 1 maj., 1 chiffre, 1 special"
                 className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
               />
             </div>

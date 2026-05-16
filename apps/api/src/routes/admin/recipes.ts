@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, recipes, ingredients, steps, macros, medias } from "@cooked/db";
+import { db, recipes, ingredients, steps, macros, medias, recipesCategories } from "@cooked/db";
 import { desc, eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
@@ -33,7 +33,7 @@ app.get("/:id", async (c) => {
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
 
-  const [recipeIngredients, recipeSteps, recipeMacro, recipeMedias] =
+  const [recipeIngredients, recipeSteps, recipeMacro, recipeMedias, recipeCategories] =
     await Promise.all([
       db
         .select()
@@ -47,6 +47,7 @@ app.get("/:id", async (c) => {
         .orderBy(steps.order),
       db.select().from(macros).where(eq(macros.recipeId, recipe.id)).limit(1),
       db.select().from(medias).where(eq(medias.recipeId, recipe.id)),
+      db.select({ categoryId: recipesCategories.categoryId }).from(recipesCategories).where(eq(recipesCategories.recipeId, recipe.id)),
     ]);
 
   return c.json({
@@ -56,6 +57,7 @@ app.get("/:id", async (c) => {
       steps: recipeSteps,
       macros: recipeMacro[0] ?? null,
       medias: recipeMedias,
+      categoryIds: recipeCategories.map((rc) => rc.categoryId),
     },
   });
 });
@@ -123,6 +125,26 @@ app.post("/", async (c) => {
         recipeId: recipe.id,
         content: step.content,
         order: i + 1,
+      })),
+    );
+  }
+
+  if (body.categoryIds?.length) {
+    await db.insert(recipesCategories).values(
+      body.categoryIds.map((categoryId) => ({
+        recipeId: recipe.id,
+        categoryId,
+      })),
+    );
+  }
+
+  if (body.medias?.length) {
+    await db.insert(medias).values(
+      body.medias.map((m) => ({
+        recipeId: recipe.id,
+        url: m.url,
+        alt: m.alt ?? null,
+        isPrimary: m.isPrimary ?? false,
       })),
     );
   }
@@ -206,6 +228,32 @@ app.put("/:id", async (c) => {
           recipeId: id,
           content: step.content,
           order: i + 1,
+        })),
+      );
+    }
+  }
+
+  if (body.categoryIds !== undefined) {
+    await db.delete(recipesCategories).where(eq(recipesCategories.recipeId, id));
+    if (body.categoryIds.length) {
+      await db.insert(recipesCategories).values(
+        body.categoryIds.map((categoryId) => ({
+          recipeId: id,
+          categoryId,
+        })),
+      );
+    }
+  }
+
+  if (body.medias !== undefined) {
+    await db.delete(medias).where(eq(medias.recipeId, id));
+    if (body.medias.length) {
+      await db.insert(medias).values(
+        body.medias.map((m) => ({
+          recipeId: id,
+          url: m.url,
+          alt: m.alt ?? null,
+          isPrimary: m.isPrimary ?? false,
         })),
       );
     }

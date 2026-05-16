@@ -1,5 +1,7 @@
 import Link from "next/link";
 import RecipeCard from "@/components/public/RecipeCard";
+import { CategoryIcon } from "@/components/public/CategoryIcon";
+import { AnimatedSection, AnimatedCard } from "@/components/public/AnimatedSection";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -23,6 +25,7 @@ type Category = {
   name: string;
   slug: string;
   description: string | null;
+  icon: string;
 };
 
 async function getRecipes(): Promise<RecipeListItem[]> {
@@ -51,37 +54,6 @@ async function getCategories(): Promise<Category[]> {
   }
 }
 
-const categoryIcons: Record<string, React.ReactNode> = {
-  plat: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 11h.01M11 15h.01M16 16h.01" /><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16" />
-    </svg>
-  ),
-  dessert: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12h20" /><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8" /><path d="m4 8 16-4" />
-    </svg>
-  ),
-  entree: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a10 10 0 0 1 10 10 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2A10 10 0 0 1 12 2Z" /><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
-    </svg>
-  ),
-  boisson: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 2h8l4 10H4L8 2Z" /><path d="M12 12v6" /><path d="M6 18h12" />
-    </svg>
-  ),
-  snack: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2Z" />
-    </svg>
-  ),
-};
-
-function getCategoryIcon(slug: string) {
-  return categoryIcons[slug] ?? categoryIcons["plat"];
-}
 
 export default async function HomePage() {
   const [recipes, categories] = await Promise.all([
@@ -98,21 +70,21 @@ export default async function HomePage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[#0a0f1e]">
           <div
-            className="absolute top-[20%] left-[15%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px]"
-            style={{ animation: "public-glow-pulse 6s ease-in-out infinite" }}
+            className="absolute top-[20%] left-[15%] w-[500px] h-[500px] bg-primary/10 blur-[150px] animate-morph"
+            style={{ animation: "morph 8s ease-in-out infinite, public-glow-pulse 6s ease-in-out infinite" }}
           />
           <div
-            className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-accent/8 rounded-full blur-[120px]"
-            style={{ animation: "public-glow-pulse 8s ease-in-out infinite 3s" }}
+            className="absolute bottom-[10%] right-[10%] w-[400px] h-[400px] bg-accent/8 blur-[120px] animate-morph"
+            style={{ animation: "morph 10s ease-in-out infinite 2s, public-glow-pulse 8s ease-in-out infinite 3s" }}
           />
           <div
-            className="absolute top-[50%] right-[30%] w-[300px] h-[300px] bg-[#a78bfa]/[0.06] rounded-full blur-[100px]"
-            style={{ animation: "public-glow-pulse 10s ease-in-out infinite 1s" }}
+            className="absolute top-[50%] right-[30%] w-[300px] h-[300px] bg-[#a78bfa]/[0.06] blur-[100px] animate-morph"
+            style={{ animation: "morph 12s ease-in-out infinite 4s, public-glow-pulse 10s ease-in-out infinite 1s" }}
           />
           <div className="absolute inset-0 public-dot-grid opacity-30" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-          <div className="text-center max-w-3xl mx-auto public-fade-up">
+          <div className="text-center max-w-3xl mx-auto animate-slide-in-up">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] mb-6">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-xs font-medium text-white/50">{recipes.length} recettes disponibles</span>
@@ -127,7 +99,7 @@ export default async function HomePage() {
             <div className="mt-10 flex items-center justify-center gap-4">
               <Link
                 href="/recettes"
-                className="group px-7 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary-hover text-white font-medium hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 flex items-center gap-2"
+                className="group px-7 py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary-hover text-white font-medium hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 flex items-center gap-2 btn-pulse"
               >
                 Explorer les recettes
                 <svg className="transition-transform group-hover:translate-x-1" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -144,7 +116,7 @@ export default async function HomePage() {
       {/* Bento grid — proper layout */}
       {recipes.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex items-end justify-between mb-10">
+          <AnimatedSection animation="fade-left" className="flex items-end justify-between mb-10">
             <div>
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-text">
                 Recettes recentes
@@ -162,19 +134,19 @@ export default async function HomePage() {
                 <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
               </svg>
             </Link>
-          </div>
+          </AnimatedSection>
 
           {/* Bento: hero left (2x2) + 2 medium right on desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Hero — spans 2/3 on desktop */}
             {heroRecipe && (
-              <div className="lg:col-span-2 lg:row-span-2">
+              <AnimatedCard className="lg:col-span-2 lg:row-span-2" index={0}>
                 <RecipeCard recipe={heroRecipe} size="hero" />
-              </div>
+              </AnimatedCard>
             )}
-            {/* Two medium cards stacked on right */}
-            {gridRecipes.slice(0, 2).map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} size="medium" />
+            {gridRecipes.slice(0, 2).map((recipe, i) => (
+              <AnimatedCard key={recipe.id} index={i + 1}>
+                <RecipeCard recipe={recipe} size="medium" />
+              </AnimatedCard>
             ))}
           </div>
 
@@ -182,11 +154,9 @@ export default async function HomePage() {
           {gridRecipes.length > 2 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
               {gridRecipes.slice(2, 6).map((recipe, i) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  size={i >= 4 ? "small" : "medium"}
-                />
+                <AnimatedCard key={recipe.id} index={i}>
+                  <RecipeCard recipe={recipe} size="medium" />
+                </AnimatedCard>
               ))}
             </div>
           )}
@@ -222,23 +192,26 @@ export default async function HomePage() {
             <div className="absolute inset-0 public-dot-grid opacity-20" />
           </div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white mb-10">
-              Par categorie
-            </h2>
+            <AnimatedSection animation="fade-left" className="mb-10">
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-white">
+                Par categorie
+              </h2>
+            </AnimatedSection>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href={`/categories/${cat.slug}`}
-                  className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-primary/20 transition-all duration-300"
-                >
+              {categories.map((cat, i) => (
+                <AnimatedCard key={cat.id} index={i}>
+                  <Link
+                    href={`/categories/${cat.slug}`}
+                    className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-primary/20 transition-all duration-300 hover-lift card-shine h-full"
+                  >
                   <div className="w-14 h-14 rounded-xl bg-white/[0.06] flex items-center justify-center text-white/60 group-hover:bg-gradient-to-br group-hover:from-primary group-hover:to-primary-hover group-hover:text-white transition-all duration-300">
-                    {getCategoryIcon(cat.slug)}
+                    <CategoryIcon icon={cat.icon} />
                   </div>
                   <span className="text-sm font-medium text-white/60 group-hover:text-white transition-colors">
                     {cat.name}
                   </span>
-                </Link>
+                  </Link>
+                </AnimatedCard>
               ))}
             </div>
           </div>

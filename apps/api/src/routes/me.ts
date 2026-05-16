@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { db, favorites, recipes } from "@cooked/db";
+import { db, favorites, recipes, user } from "@cooked/db";
 import { and, eq } from "drizzle-orm";
 import { authMiddleware } from "../middleware/auth.js";
 import type { AppEnv } from "../lib/types.js";
@@ -19,6 +19,39 @@ app.get("/", async (c) => {
       image: u.image,
     },
   });
+});
+
+app.patch("/", async (c) => {
+  const u = c.get("user");
+  const body = await c.req.json();
+  const name = body.name?.trim();
+  if (!name || name.length > 100) {
+    return c.json({ error: "Nom invalide" }, 400);
+  }
+  await db.update(user).set({ name }).where(eq(user.id, u.id));
+  return c.json({ ok: true });
+});
+
+app.get("/favorites", async (c) => {
+  const u = c.get("user");
+
+  const rows = await db
+    .select({
+      recipeId: favorites.recipeId,
+      createdAt: favorites.createdAt,
+      title: recipes.title,
+      slug: recipes.slug,
+      description: recipes.description,
+      prepTime: recipes.prepTime,
+      cookTime: recipes.cookTime,
+      difficulty: recipes.difficulty,
+      servings: recipes.servings,
+    })
+    .from(favorites)
+    .innerJoin(recipes, eq(favorites.recipeId, recipes.id))
+    .where(eq(favorites.userId, u.id));
+
+  return c.json({ favorites: rows });
 });
 
 app.post("/favorites/:id", async (c) => {

@@ -30,7 +30,7 @@ export default function ConnexionPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-8rem)]">
       {/* Left — Decorative panel */}
       <div className="relative overflow-hidden auth-mesh-bg lg:w-[45%] xl:w-[40%] shrink-0 flex flex-col justify-between p-8 sm:p-12 lg:p-14">
         {/* Floating orbs */}
@@ -104,7 +104,7 @@ export default function ConnexionPage() {
 
       {/* Right — Form panel */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-14 bg-bg">
-        <div className="w-full max-w-[420px]">
+        <div className="w-full max-w-[420px] animate-slide-in-right">
           {/* Header (desktop only) */}
           <div className="hidden lg:block mb-10">
             <h1 className="text-[30px] font-bold text-text tracking-tight font-serif">

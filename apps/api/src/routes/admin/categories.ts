@@ -46,6 +46,7 @@ app.post("/", async (c) => {
       name: body.name,
       slug,
       description: body.description ?? null,
+      icon: body.icon ?? "utensils",
       order: body.order ?? 0,
     })
     .returning();
@@ -79,6 +80,7 @@ app.put("/:id", async (c) => {
       ...(body.name !== undefined && { name: body.name }),
       ...(body.slug !== undefined && { slug: body.slug }),
       ...(body.description !== undefined && { description: body.description }),
+      ...(body.icon !== undefined && { icon: body.icon }),
       ...(body.order !== undefined && { order: body.order }),
     })
     .where(eq(categories.id, id))

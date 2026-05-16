@@ -4,6 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
+interface CategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface MediaItem {
+  url: string;
+  alt: string;
+  isPrimary: boolean;
+}
+
 interface Ingredient {
   name: string;
   quantity: string;
@@ -61,9 +73,20 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
     { name: "", quantity: "", unit: "", note: "" },
   ]);
   const [steps, setSteps] = useState<Step[]>([{ content: "" }]);
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<CategoryOption[]>([]);
+  const [medias, setMedias] = useState<MediaItem[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(isEditing);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    api
+      .get<{ categories: CategoryOption[] }>("/api/admin/categories")
+      .then((d) => setAllCategories(d.categories))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!slugManual && title) {
@@ -89,6 +112,8 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
             macros: { kcal: number; protein: number; carbs: number; fat: number } | null;
             ingredients: Array<{ name: string; quantity: number | null; unit: string | null; note: string | null }>;
             steps: Array<{ content: string }>;
+            categoryIds: string[];
+            medias: Array<{ url: string; alt: string | null; isPrimary: boolean }>;
           };
         }>(`/api/admin/recipes/${recipeId}`);
 
@@ -124,6 +149,14 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         if (recipe.steps.length) {
           setSteps(recipe.steps.map((s) => ({ content: s.content })));
         }
+
+        if (recipe.categoryIds?.length) {
+          setCategoryIds(recipe.categoryIds);
+        }
+
+        if (recipe.medias?.length) {
+          setMedias(recipe.medias.map((m) => ({ url: m.url, alt: m.alt ?? "", isPrimary: m.isPrimary })));
+        }
       } catch {
         setError("Impossible de charger la recette.");
       }
@@ -154,6 +187,53 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
 
   function updateStep(i: number, value: string) {
     setSteps(steps.map((s, idx) => (idx === i ? { content: value } : s)));
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files?.length) return;
+    setUploading(true);
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/api/admin/upload`,
+          { method: "POST", body: formData, credentials: "include" }
+        );
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          setError((err as { error?: string }).error || "Erreur upload");
+          continue;
+        }
+        const { url } = await res.json() as { url: string };
+        setMedias((prev) => [
+          ...prev,
+          { url, alt: "", isPrimary: prev.length === 0 },
+        ]);
+      } catch {
+        setError("Erreur lors de l'upload");
+      }
+    }
+    setUploading(false);
+    e.target.value = "";
+  }
+
+  function removeMedia(idx: number) {
+    setMedias((prev) => {
+      const next = prev.filter((_, i) => i !== idx);
+      if (next.length && !next.some((m) => m.isPrimary)) {
+        next[0].isPrimary = true;
+      }
+      return next;
+    });
+  }
+
+  function setPrimaryMedia(idx: number) {
+    setMedias((prev) =>
+      prev.map((m, i) => ({ ...m, isPrimary: i === idx }))
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -187,6 +267,8 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           : undefined,
       ingredients: ingredients.filter((ing) => ing.name.trim()),
       steps: steps.filter((s) => s.content.trim()),
+      categoryIds,
+      medias: medias.length ? medias : undefined,
     };
 
     try {
@@ -196,8 +278,8 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         await api.post("/api/admin/recipes", payload);
       }
       router.push("/admin/recettes");
-    } catch {
-      setError("Une erreur est survenue. Verifiez que le slug est unique.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
     }
 
     setLoading(false);
@@ -249,6 +331,83 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
         </div>
       </Section>
 
+      {/* Medias */}
+      <Section title="Images" icon={
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+          <circle cx="9" cy="9" r="2" />
+          <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+        </svg>
+      }>
+        {medias.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+            {medias.map((m, i) => (
+              <div key={i} className="relative group rounded-xl overflow-hidden border border-border/30 aspect-square">
+                <img src={m.url} alt={m.alt || "Image"} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPrimaryMedia(i)}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      m.isPrimary ? "bg-primary text-white" : "bg-white/20 text-white hover:bg-white/40"
+                    }`}
+                    title={m.isPrimary ? "Image principale" : "Definir comme principale"}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill={m.isPrimary ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeMedia(i)}
+                    className="w-8 h-8 rounded-full bg-red-500/80 text-white flex items-center justify-center hover:bg-red-600 transition-all cursor-pointer"
+                    title="Supprimer"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                {m.isPrimary && (
+                  <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold">
+                    Principale
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <label className="flex-1 relative cursor-pointer">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              multiple
+              onChange={handleFileUpload}
+              className="sr-only"
+            />
+            <div className="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-primary/30 rounded-xl text-[13px] font-semibold text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
+              {uploading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  Upload en cours...
+                </span>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Ajouter des images
+                </>
+              )}
+            </div>
+          </label>
+        </div>
+        <p className="text-[11px] text-text-tertiary mt-2">JPEG, PNG, WebP ou AVIF. Max 5 Mo par image.</p>
+      </Section>
+
       {/* Details */}
       <Section title="Details" icon={
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -281,6 +440,39 @@ export function RecipeForm({ recipeId }: RecipeFormProps) {
           </select>
         </Field>
       </Section>
+
+      {/* Categories */}
+      {allCategories.length > 0 && (
+        <Section title="Categories" icon={
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+          </svg>
+        }>
+          <div className="flex flex-wrap gap-2">
+            {allCategories.map((cat) => {
+              const selected = categoryIds.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() =>
+                    setCategoryIds((prev) =>
+                      selected ? prev.filter((id) => id !== cat.id) : [...prev, cat.id]
+                    )
+                  }
+                  className={`px-4 py-2 text-[13px] font-medium rounded-xl border transition-all duration-200 cursor-pointer ${
+                    selected
+                      ? "bg-primary text-white border-primary shadow-[0_2px_12px_rgba(71,91,138,0.3)]"
+                      : "bg-white/80 text-text-secondary border-border/50 hover:border-primary/40 hover:text-primary"
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       {/* Macros */}
       <Section title="Macronutriments" icon={

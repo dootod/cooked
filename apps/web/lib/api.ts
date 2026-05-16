@@ -1,5 +1,16 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
+class ApiError extends Error {
+  status: number;
+  details?: unknown;
+
+  constructor(status: number, message: string, details?: unknown) {
+    super(message);
+    this.status = status;
+    this.details = details;
+  }
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
@@ -11,11 +22,21 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!res.ok) {
-    throw new Error(`API ${res.status}: ${res.statusText}`);
+    let body: { error?: string; details?: unknown } = {};
+    try {
+      body = await res.json();
+    } catch {}
+    throw new ApiError(
+      res.status,
+      body.error || `Erreur ${res.status}`,
+      body.details,
+    );
   }
 
   return res.json() as Promise<T>;
 }
+
+export { ApiError };
 
 export const api = {
   get: <T>(path: string, init?: RequestInit) =>

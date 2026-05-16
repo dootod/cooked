@@ -37,7 +37,7 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
     return (
       <Link
         href={`/recettes/${recipe.slug}`}
-        className="group relative block rounded-2xl overflow-hidden h-full min-h-[420px]"
+        className="group relative block rounded-2xl overflow-hidden h-full min-h-[420px] card-shine"
       >
         <div className="absolute inset-0">
           {hasImage ? (
@@ -129,7 +129,7 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
   return (
     <Link
       href={`/recettes/${recipe.slug}`}
-      className="group block rounded-2xl overflow-hidden public-glow-card h-full"
+      className="group block rounded-2xl overflow-hidden public-glow-card h-full hover-lift card-shine"
     >
       <div className="aspect-[4/3] relative overflow-hidden">
         {hasImage ? (

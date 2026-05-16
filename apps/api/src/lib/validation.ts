@@ -40,6 +40,17 @@ export const createRecipeSchema = z.object({
     )
     .max(50)
     .optional(),
+  categoryIds: z.array(z.string().max(100)).max(20).optional(),
+  medias: z
+    .array(
+      z.object({
+        url: z.string().url().max(500),
+        alt: z.string().max(200).nullable().optional(),
+        isPrimary: z.boolean().optional(),
+      }),
+    )
+    .max(10)
+    .optional(),
 });
 
 export const updateRecipeSchema = createRecipeSchema.partial();
@@ -48,6 +59,7 @@ export const createCategorySchema = z.object({
   name: z.string().min(1, "Nom requis").max(100),
   slug: z.string().max(100).optional(),
   description: z.string().max(MAX_TEXT).nullable().optional(),
+  icon: z.enum(["utensils", "pizza", "cake", "salad", "soup", "drink", "cookie", "fish", "meat", "bread", "egg", "flame"]).optional(),
   order: z.coerce.number().int().min(0).max(999).optional(),
 });
 
@@ -58,7 +70,7 @@ export const commentStatusSchema = z.object({
 });
 
 export const userPatchSchema = z.object({
-  role: z.string().max(50).optional(),
+  role: z.enum(["user", "admin"]).optional(),
   banned: z.boolean().optional(),
   banReason: z.string().max(MAX_TEXT).nullable().optional(),
 });
