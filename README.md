@@ -45,9 +45,15 @@ cooked/
 - [x] Phase 1 — Audit securite : validation Zod, error handling, FK/indexes DB, proxy admin role check
 - [x] Phase 1 — Consolidation schema (table users supprimee, user Better Auth = source unique)
 - [x] Phase 1 — API /api/me (profil + favoris CRUD), pages 404/error/loading
-- [ ] Phase 1 — Upload images Cloudflare R2
+- [x] Phase 1 — Upload images local (endpoint multipart, validation, serving statique)
+- [x] Phase 1 — Animations avancees (scroll-reveal, text-reveal, hover effects, stagger)
+- [x] Phase 1 — Categories dynamiques avec icones SVG + assignation recettes
+- [x] Phase 1 — Pages profil et favoris (frontend complet)
+- [x] Phase 1 — Securite renforcee (rate limiting, password complexity, enum validation)
+- [ ] Phase 1 — Migration upload vers Cloudflare R2
 - [ ] Phase 1 — Deploiement Vercel + VPS
-- [ ] Phase 2 — Favoris, notation, commentaires membres (frontend)
+- [x] Phase 2 — Favoris (API + frontend complet)
+- [ ] Phase 2 — Notation, commentaires membres (frontend)
 - [ ] Phase 2 — Recherche full-text + filtres avances
 - [ ] Phase 3 — Liste de courses PDF, analytics backoffice
 - [ ] Phase 4 — i18n, API publique documentee, app mobile

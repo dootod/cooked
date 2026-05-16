@@ -1,6 +1,6 @@
 # 🍳 Cooked — Product Requirements Document
 
-> **Version** : 2.2 · **Statut** : Draft · **Dernière mise à jour** : Mai 2026  
+> **Version** : 2.3 · **Statut** : Draft · **Dernière mise à jour** : 16 Mai 2026  
 > **Auteur** : Thomas · **Contexte** : Projet perso — évolutif vers production
 
 ---
@@ -242,7 +242,7 @@ cooked/
 | Entité | Champs clés |
 |---|---|
 | `recipes` | id, title, slug, description, prepTime, cookTime, difficulty, servings, status, videoUrl, createdAt, updatedAt |
-| `categories` | id, name, slug, description, order |
+| `categories` | id, name, slug, description, icon, order |
 | `tags` | id, name, slug |
 | `ingredients` | id, recipeId, name, quantity, unit, note, order |
 | `steps` | id, recipeId, content, order, mediaUrl |
@@ -291,7 +291,8 @@ Membre poste → status: pending
 | Méthode | Route | Description |
 |---|---|---|
 | `GET` | `/api/me` | Profil de l'utilisateur connecté |
-| `PUT` | `/api/me` | Modifier son profil |
+| `PATCH` | `/api/me` | Modifier son nom |
+| `GET` | `/api/me/favorites` | Liste des recettes favorites |
 | `POST` | `/api/me/favorites/:id` | Ajouter aux favoris |
 | `DELETE` | `/api/me/favorites/:id` | Retirer des favoris |
 | `POST` | `/api/recipes/:id/ratings` | Noter une recette |
@@ -305,6 +306,7 @@ Membre poste → status: pending
 | `POST` | `/api/admin/recipes` | Créer une recette |
 | `PUT` | `/api/admin/recipes/:id` | Modifier une recette |
 | `DELETE` | `/api/admin/recipes/:id` | Supprimer une recette |
+| `POST` | `/api/admin/upload` | Upload image (multipart, max 5MB, JPEG/PNG/WebP/AVIF) |
 | `GET` | `/api/admin/comments` | File de modération (status=pending) |
 | `PATCH` | `/api/admin/comments/:id` | Approuver ou rejeter un commentaire |
 | `GET` | `/api/admin/users` | Liste des membres (table Better Auth `user`) |
@@ -359,7 +361,7 @@ Le catalogue de recettes utilise une **grille bento asymétrique** : blocs de ta
 | Card macros | 4 blocs monospace alignés horizontalement : kcal / prot / glucides / lipides |
 | Card matériel | Grid de pills avec icône + nom, fond indigo pâle |
 | Bouton primaire | Fond indigo, texte blanc, border-radius 8px, hover légèrement plus sombre |
-| Animations | Fade-in au scroll (Intersection Observer), hover lift 2px sur les blocs bento |
+| Animations | Scroll-reveal (IntersectionObserver) avec 12 variantes, text-reveal mot par mot, hover-lift (-8px + scale), card-shine (gradient sweep), morph (blob shape), gradient-border animé, btn-pulse, stagger delays |
 
 ### Page détail recette
 
@@ -447,13 +449,21 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - [x] Audit securite + qualite : validation Zod sur tous endpoints, error handling global, FK/indexes/PK DB, proxy admin role check, pages error/404/loading
 - [x] Consolidation schema DB : table `users` supprimee (doublon), `user` Better Auth = source unique, FK + indexes + contraintes uniques ajoutees
 - [x] API /api/me implemente (profil + favoris CRUD)
-- [ ] Upload images vers Cloudflare R2
+- [x] Upload images local (dev) — endpoint multipart avec validation type/taille, serving statique via Hono serveStatic
+- [x] Animations avancees : IntersectionObserver scroll-reveal, text-reveal mot par mot, hover-lift, card-shine, morph blobs, gradient-border, stagger delays
+- [x] Categories dynamiques avec icones SVG (12 icones, picker admin, affichage public/footer)
+- [x] Pages profil et favoris (frontend complet avec useSession, redirect, CRUD favoris)
+- [x] Navbar + footer sur pages connexion/inscription (layout /compte)
+- [x] Securite renforcee : rate limiting (10 req/min auth), password min 8 chars + complexite, enum validation role/icon, LIKE sanitization
+- [x] Assignation recettes aux categories (many-to-many, UI toggle dans formulaire)
+- [x] Upload medias dans formulaire recette (preview grid, primary/delete, sauvegarde avec recette)
+- [ ] Upload images vers Cloudflare R2 (remplacer stockage local)
 - [ ] Deploiement Vercel + VPS
 
 ### Phase 2 — Membres
-- Pages profil et favoris (frontend)
+- [x] Pages profil et favoris (frontend)
+- [x] Favoris (API + UI complete)
 - Emails transactionnels via Resend (confirmation inscription, etc.)
-- Favoris
 - Notation des recettes (visible publiquement)
 - Commentaires + modération a priori
 - Ajustement des portions côté client
