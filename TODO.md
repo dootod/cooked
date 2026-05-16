@@ -15,3 +15,4 @@
 - [ ] Pouvoir ajouter et modifier les tags des recettes
 - [ ] Pouvoir cocher les ingrédients sur les pages des recettes
 - [ ] Pouvoir ajouter des recettes aux favoris
+- [ ] Mettre à jour la seed en fonction des données acutellment présent sur le site
