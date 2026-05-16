@@ -10,3 +10,8 @@
 - [ ] **Upload garbage collection** — Supprimer les fichiers orphelins dans `/uploads` quand une recette ou un media est supprime (hook cascade ou cron job)
 - [ ] **Cookie Secure flag** — Verifier que Better Auth set `secure: true` sur les cookies en production (HTTPS only)
 - [ ] **Rate limit par user** — Completer le rate limiting actuel (par IP) avec un rate limit par userId pour les routes authentifiees
+- [ ] Rediriger l'accès au login et register si dékà connecté
+- [ ] Faire le calculateur de macro en fonction du nombre de portion
+- [ ] Pouvoir ajouter et modifier les tags des recettes
+- [ ] Pouvoir cocher les ingrédients sur les pages des recettes
+- [ ] Pouvoir ajouter des recettes aux favoris
