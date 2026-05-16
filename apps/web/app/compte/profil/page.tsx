@@ -13,6 +13,8 @@ export default function ProfilPage() {
   const [email, setEmail] = useState("");
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     if (!isPending && !session?.user) {
@@ -28,6 +30,19 @@ export default function ProfilPage() {
     await signOut();
     router.push("/");
     router.refresh();
+  }
+
+  async function handleResendVerification() {
+    setResending(true);
+    try {
+      await api.post("/api/auth/send-verification-email", {
+        email: session?.user?.email,
+        callbackURL: `${window.location.origin}/compte/email-verifie`,
+      });
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch {}
+    setResending(false);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -82,11 +97,30 @@ export default function ProfilPage() {
           <div>
             <p className="text-[16px] font-semibold text-text">{user.name || "Sans nom"}</p>
             <p className="text-[13px] text-text-secondary">{user.email}</p>
-            {user.role === "admin" && (
-              <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
-                Admin
-              </span>
-            )}
+            <div className="flex items-center gap-2 mt-1.5">
+              {user.emailVerified ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 rounded-full">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Email verifie
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 rounded-full">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  Non verifie
+                </span>
+              )}
+              {user.role === "admin" && (
+                <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">
+                  Admin
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -112,7 +146,21 @@ export default function ProfilPage() {
               disabled
               className="w-full px-4 py-2.5 text-[14px] text-text-secondary bg-bg border border-border/30 rounded-xl cursor-not-allowed"
             />
-            <p className="text-[11px] text-text-tertiary mt-1">L&apos;email ne peut pas etre modifie.</p>
+            {!user.emailVerified && (
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending || resendSuccess}
+                  className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors disabled:opacity-60 cursor-pointer"
+                >
+                  {resending ? "Envoi..." : resendSuccess ? "Email envoye !" : "Renvoyer l'email de verification"}
+                </button>
+              </div>
+            )}
+            {user.emailVerified && (
+              <p className="text-[11px] text-text-tertiary mt-1">L&apos;email ne peut pas etre modifie.</p>
+            )}
           </div>
 
           <div className="flex items-center gap-3 pt-2">

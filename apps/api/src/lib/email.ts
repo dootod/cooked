@@ -17,10 +17,16 @@ export async function sendEmail(opts: {
     return;
   }
 
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: FROM,
     to: opts.to,
     subject: opts.subject,
     html: opts.html,
   });
+
+  if (error) {
+    console.error("[Email] Resend error:", error);
+  } else {
+    console.log("[Email] Sent to", opts.to, "id:", data?.id);
+  }
 }
