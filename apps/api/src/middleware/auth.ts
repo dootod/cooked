@@ -7,7 +7,11 @@ export async function authMiddleware(c: Context<AppEnv>, next: Next) {
   if (!session) {
     return c.json({ error: "Unauthorized" }, 401);
   }
-  c.set("user", session.user as AppEnv["Variables"]["user"]);
+  const user = session.user as AppEnv["Variables"]["user"];
+  if (user.banned) {
+    return c.json({ error: "Compte suspendu" }, 403);
+  }
+  c.set("user", user);
   c.set("session", session.session as AppEnv["Variables"]["session"]);
   await next();
 }

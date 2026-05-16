@@ -4,6 +4,8 @@ export type AuthUser = {
   email: string;
   role: string | null;
   image: string | null;
+  banned: boolean | null;
+  banReason: string | null;
 };
 
 export type AppEnv = {

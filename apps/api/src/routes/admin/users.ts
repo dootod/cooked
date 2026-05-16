@@ -6,6 +6,10 @@ import { adminMiddleware } from "../../middleware/admin.js";
 import { userPatchSchema } from "../../lib/validation.js";
 import type { AppEnv } from "../../lib/types.js";
 
+async function revokeUserSessions(userId: string) {
+  await db.delete(session).where(eq(session.userId, userId));
+}
+
 const app = new Hono<AppEnv>();
 
 app.use("*", authMiddleware, adminMiddleware);
@@ -41,12 +45,21 @@ app.get("/", async (c) => {
 
 app.patch("/:id", async (c) => {
   const id = c.req.param("id");
+  const currentUser = c.get("user");
   const raw = await c.req.json();
   const result = userPatchSchema.safeParse(raw);
   if (!result.success) {
     return c.json({ error: "Validation error", details: result.error.issues }, 400);
   }
   const body = result.data;
+
+  if (body.role !== undefined && body.role !== "admin" && id === currentUser.id) {
+    return c.json({ error: "Impossible de retirer votre propre role admin" }, 400);
+  }
+
+  if (body.banned === true && id === currentUser.id) {
+    return c.json({ error: "Impossible de vous bannir vous-meme" }, 400);
+  }
 
   const allowed: Record<string, unknown> = {};
   if (body.role !== undefined) allowed.role = body.role;
@@ -66,6 +79,11 @@ app.patch("/:id", async (c) => {
     .returning();
 
   if (!updated) return c.json({ error: "Not found" }, 404);
+
+  if (body.banned === true) {
+    await revokeUserSessions(id);
+  }
+
   return c.json({ user: updated });
 });
 
