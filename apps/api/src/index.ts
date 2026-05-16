@@ -40,6 +40,12 @@ app.onError((err, c) => {
 });
 
 app.get("/health", (c) => c.json({ status: "ok" }));
+app.use("/uploads/*", async (c, next) => {
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("Content-Security-Policy", "default-src 'none'; img-src 'self'");
+  c.header("Cache-Control", "public, max-age=31536000, immutable");
+  await next();
+});
 app.use("/uploads/*", serveStatic({ root: "./" }));
 
 app.use("/api/auth/*", rateLimit({ windowMs: 60_000, max: 10 }));
@@ -49,6 +55,9 @@ app.route("/api/recipes", recipesRoutes);
 app.route("/api/categories", categoriesRoutes);
 app.route("/api/tags", tagsRoutes);
 app.route("/api/me", meRoutes);
+
+app.use("/api/admin/upload/*", rateLimit({ windowMs: 60_000, max: 20 }));
+app.use("/api/admin/*", rateLimit({ windowMs: 60_000, max: 60 }));
 app.route("/api/admin/recipes", adminRecipesRoutes);
 app.route("/api/admin/categories", adminCategoriesRoutes);
 app.route("/api/admin/comments", adminCommentsRoutes);

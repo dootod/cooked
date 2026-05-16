@@ -10,6 +10,10 @@ import {
 } from "../../lib/validation.js";
 import type { AppEnv } from "../../lib/types.js";
 
+async function withTransaction<T>(fn: (tx: typeof db) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => fn(tx as unknown as typeof db));
+}
+
 const app = new Hono<AppEnv>();
 app.use("*", authMiddleware, adminMiddleware);
 
@@ -81,73 +85,77 @@ app.post("/", async (c) => {
     return c.json({ error: "Slug deja utilise" }, 409);
   }
 
-  const [recipe] = await db
-    .insert(recipes)
-    .values({
-      title: body.title,
-      slug,
-      description: body.description ?? null,
-      prepTime: body.prepTime,
-      cookTime: body.cookTime,
-      difficulty: body.difficulty,
-      servings: body.servings,
-      status: body.status ?? "draft",
-      videoUrl: body.videoUrl ?? null,
-    })
-    .returning();
+  const recipe = await withTransaction(async (tx) => {
+    const [created] = await tx
+      .insert(recipes)
+      .values({
+        title: body.title,
+        slug,
+        description: body.description ?? null,
+        prepTime: body.prepTime,
+        cookTime: body.cookTime,
+        difficulty: body.difficulty,
+        servings: body.servings,
+        status: body.status ?? "draft",
+        videoUrl: body.videoUrl ?? null,
+      })
+      .returning();
 
-  if (body.macros) {
-    await db.insert(macros).values({
-      recipeId: recipe.id,
-      kcal: body.macros.kcal,
-      protein: body.macros.protein,
-      carbs: body.macros.carbs,
-      fat: body.macros.fat,
-    });
-  }
+    if (body.macros) {
+      await tx.insert(macros).values({
+        recipeId: created.id,
+        kcal: body.macros.kcal,
+        protein: body.macros.protein,
+        carbs: body.macros.carbs,
+        fat: body.macros.fat,
+      });
+    }
 
-  if (body.ingredients?.length) {
-    await db.insert(ingredients).values(
-      body.ingredients.map((ing, i) => ({
-        recipeId: recipe.id,
-        name: ing.name,
-        quantity: ing.quantity ?? null,
-        unit: ing.unit ?? null,
-        note: ing.note ?? null,
-        order: i,
-      })),
-    );
-  }
+    if (body.ingredients?.length) {
+      await tx.insert(ingredients).values(
+        body.ingredients.map((ing, i) => ({
+          recipeId: created.id,
+          name: ing.name,
+          quantity: ing.quantity ?? null,
+          unit: ing.unit ?? null,
+          note: ing.note ?? null,
+          order: i,
+        })),
+      );
+    }
 
-  if (body.steps?.length) {
-    await db.insert(steps).values(
-      body.steps.map((step, i) => ({
-        recipeId: recipe.id,
-        content: step.content,
-        order: i + 1,
-      })),
-    );
-  }
+    if (body.steps?.length) {
+      await tx.insert(steps).values(
+        body.steps.map((step, i) => ({
+          recipeId: created.id,
+          content: step.content,
+          order: i + 1,
+        })),
+      );
+    }
 
-  if (body.categoryIds?.length) {
-    await db.insert(recipesCategories).values(
-      body.categoryIds.map((categoryId) => ({
-        recipeId: recipe.id,
-        categoryId,
-      })),
-    );
-  }
+    if (body.categoryIds?.length) {
+      await tx.insert(recipesCategories).values(
+        body.categoryIds.map((categoryId) => ({
+          recipeId: created.id,
+          categoryId,
+        })),
+      );
+    }
 
-  if (body.medias?.length) {
-    await db.insert(medias).values(
-      body.medias.map((m) => ({
-        recipeId: recipe.id,
-        url: m.url,
-        alt: m.alt ?? null,
-        isPrimary: m.isPrimary ?? false,
-      })),
-    );
-  }
+    if (body.medias?.length) {
+      await tx.insert(medias).values(
+        body.medias.map((m) => ({
+          recipeId: created.id,
+          url: m.url,
+          alt: m.alt ?? null,
+          isPrimary: m.isPrimary ?? false,
+        })),
+      );
+    }
+
+    return created;
+  });
 
   return c.json({ recipe }, 201);
 });
@@ -172,92 +180,98 @@ app.put("/:id", async (c) => {
     }
   }
 
-  const [recipe] = await db
-    .update(recipes)
-    .set({
-      ...(body.title !== undefined && { title: body.title }),
-      ...(body.slug !== undefined && { slug: body.slug }),
-      ...(body.description !== undefined && { description: body.description }),
-      ...(body.prepTime !== undefined && { prepTime: body.prepTime }),
-      ...(body.cookTime !== undefined && { cookTime: body.cookTime }),
-      ...(body.difficulty !== undefined && { difficulty: body.difficulty }),
-      ...(body.servings !== undefined && { servings: body.servings }),
-      ...(body.status !== undefined && { status: body.status }),
-      ...(body.videoUrl !== undefined && { videoUrl: body.videoUrl }),
-      updatedAt: new Date(),
-    })
-    .where(eq(recipes.id, id))
-    .returning();
+  const recipe = await withTransaction(async (tx) => {
+    const [updated] = await tx
+      .update(recipes)
+      .set({
+        ...(body.title !== undefined && { title: body.title }),
+        ...(body.slug !== undefined && { slug: body.slug }),
+        ...(body.description !== undefined && { description: body.description }),
+        ...(body.prepTime !== undefined && { prepTime: body.prepTime }),
+        ...(body.cookTime !== undefined && { cookTime: body.cookTime }),
+        ...(body.difficulty !== undefined && { difficulty: body.difficulty }),
+        ...(body.servings !== undefined && { servings: body.servings }),
+        ...(body.status !== undefined && { status: body.status }),
+        ...(body.videoUrl !== undefined && { videoUrl: body.videoUrl }),
+        updatedAt: new Date(),
+      })
+      .where(eq(recipes.id, id))
+      .returning();
+
+    if (!updated) return null;
+
+    if (body.macros !== undefined) {
+      await tx.delete(macros).where(eq(macros.recipeId, id));
+      if (body.macros) {
+        await tx.insert(macros).values({
+          recipeId: id,
+          kcal: body.macros.kcal,
+          protein: body.macros.protein,
+          carbs: body.macros.carbs,
+          fat: body.macros.fat,
+        });
+      }
+    }
+
+    if (body.ingredients !== undefined) {
+      await tx.delete(ingredients).where(eq(ingredients.recipeId, id));
+      if (body.ingredients.length) {
+        await tx.insert(ingredients).values(
+          body.ingredients.map((ing, i) => ({
+            recipeId: id,
+            name: ing.name,
+            quantity: ing.quantity ?? null,
+            unit: ing.unit ?? null,
+            note: ing.note ?? null,
+            order: i,
+          })),
+        );
+      }
+    }
+
+    if (body.steps !== undefined) {
+      await tx.delete(steps).where(eq(steps.recipeId, id));
+      if (body.steps.length) {
+        await tx.insert(steps).values(
+          body.steps.map((step, i) => ({
+            recipeId: id,
+            content: step.content,
+            order: i + 1,
+          })),
+        );
+      }
+    }
+
+    if (body.categoryIds !== undefined) {
+      await tx.delete(recipesCategories).where(eq(recipesCategories.recipeId, id));
+      if (body.categoryIds.length) {
+        await tx.insert(recipesCategories).values(
+          body.categoryIds.map((categoryId) => ({
+            recipeId: id,
+            categoryId,
+          })),
+        );
+      }
+    }
+
+    if (body.medias !== undefined) {
+      await tx.delete(medias).where(eq(medias.recipeId, id));
+      if (body.medias.length) {
+        await tx.insert(medias).values(
+          body.medias.map((m) => ({
+            recipeId: id,
+            url: m.url,
+            alt: m.alt ?? null,
+            isPrimary: m.isPrimary ?? false,
+          })),
+        );
+      }
+    }
+
+    return updated;
+  });
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
-
-  if (body.macros !== undefined) {
-    await db.delete(macros).where(eq(macros.recipeId, id));
-    if (body.macros) {
-      await db.insert(macros).values({
-        recipeId: id,
-        kcal: body.macros.kcal,
-        protein: body.macros.protein,
-        carbs: body.macros.carbs,
-        fat: body.macros.fat,
-      });
-    }
-  }
-
-  if (body.ingredients !== undefined) {
-    await db.delete(ingredients).where(eq(ingredients.recipeId, id));
-    if (body.ingredients.length) {
-      await db.insert(ingredients).values(
-        body.ingredients.map((ing, i) => ({
-          recipeId: id,
-          name: ing.name,
-          quantity: ing.quantity ?? null,
-          unit: ing.unit ?? null,
-          note: ing.note ?? null,
-          order: i,
-        })),
-      );
-    }
-  }
-
-  if (body.steps !== undefined) {
-    await db.delete(steps).where(eq(steps.recipeId, id));
-    if (body.steps.length) {
-      await db.insert(steps).values(
-        body.steps.map((step, i) => ({
-          recipeId: id,
-          content: step.content,
-          order: i + 1,
-        })),
-      );
-    }
-  }
-
-  if (body.categoryIds !== undefined) {
-    await db.delete(recipesCategories).where(eq(recipesCategories.recipeId, id));
-    if (body.categoryIds.length) {
-      await db.insert(recipesCategories).values(
-        body.categoryIds.map((categoryId) => ({
-          recipeId: id,
-          categoryId,
-        })),
-      );
-    }
-  }
-
-  if (body.medias !== undefined) {
-    await db.delete(medias).where(eq(medias.recipeId, id));
-    if (body.medias.length) {
-      await db.insert(medias).values(
-        body.medias.map((m) => ({
-          recipeId: id,
-          url: m.url,
-          alt: m.alt ?? null,
-          isPrimary: m.isPrimary ?? false,
-        })),
-      );
-    }
-  }
 
   return c.json({ recipe });
 });

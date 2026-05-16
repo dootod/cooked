@@ -14,11 +14,11 @@ export function rateLimit(opts: {
   max: number;
 }): MiddlewareHandler {
   return async (c, next) => {
-    const ip =
-      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
-      c.req.header("x-real-ip") ??
-      "unknown";
-    const key = `${ip}:${c.req.path}`;
+    const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
+    const realIp = c.req.header("x-real-ip");
+    // Prefer x-forwarded-for behind trusted proxy, fall back to x-real-ip, then "unknown"
+    const ip = forwarded || realIp || "unknown";
+    const key = `${ip}:${c.req.method}:${c.req.path}`;
     const now = Date.now();
     const record = store.get(key);
 

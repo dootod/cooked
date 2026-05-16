@@ -90,7 +90,7 @@ app.get("/", async (c) => {
 
   const orderBy =
     sort === "prep_asc"
-      ? sql`${recipes.prepTime} + ${recipes.cookTime} ASC`
+      ? sql`(${recipes.prepTime} + ${recipes.cookTime}) ASC`
       : desc(recipes.createdAt);
 
   const [rows, [{ total }]] = await Promise.all([

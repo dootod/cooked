@@ -1,8 +1,13 @@
 import { Hono } from "hono";
 import { db, favorites, recipes, user } from "@cooked/db";
 import { and, eq } from "drizzle-orm";
+import { z } from "zod";
 import { authMiddleware } from "../middleware/auth.js";
 import type { AppEnv } from "../lib/types.js";
+
+const updateProfileSchema = z.object({
+  name: z.string().min(1, "Nom requis").max(100).transform((s) => s.trim()),
+});
 
 const app = new Hono<AppEnv>();
 
@@ -23,12 +28,12 @@ app.get("/", async (c) => {
 
 app.patch("/", async (c) => {
   const u = c.get("user");
-  const body = await c.req.json();
-  const name = body.name?.trim();
-  if (!name || name.length > 100) {
-    return c.json({ error: "Nom invalide" }, 400);
+  const raw = await c.req.json();
+  const result = updateProfileSchema.safeParse(raw);
+  if (!result.success) {
+    return c.json({ error: "Nom invalide", details: result.error.issues }, 400);
   }
-  await db.update(user).set({ name }).where(eq(user.id, u.id));
+  await db.update(user).set({ name: result.data.name }).where(eq(user.id, u.id));
   return c.json({ ok: true });
 });
 
