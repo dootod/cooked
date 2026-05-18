@@ -62,6 +62,10 @@ CORS_ORIGIN=http://localhost:3000
 # Port de l'API (3001 par défaut)
 PORT=3001
 
+# URL publique de l'API — utilisee pour whitelist medias
+# En production : mettre l'URL publique (ex: https://api.cooked.app)
+API_PUBLIC_URL=http://localhost:3001
+
 # Cloudflare R2 — laisser vide jusqu'à la phase upload
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -69,9 +73,14 @@ R2_SECRET_ACCESS_KEY=
 R2_BUCKET_NAME=
 R2_PUBLIC_URL=
 
-# Resend — laisser vide jusqu'à la phase emails
+# Resend — laisser vide en dev (emails skippes avec warning)
 RESEND_API_KEY=
 EMAIL_FROM=Cooked <noreply@cooked.app>
+
+# Admin — pour le script seed-admin (section 7)
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+ADMIN_NAME=
 
 # Upstash Redis — laisser vide en dev (fallback in-memory)
 # En production : creer un compte sur upstash.com et remplir ces valeurs

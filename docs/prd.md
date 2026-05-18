@@ -1,6 +1,6 @@
 # 🍳 Cooked — Product Requirements Document
 
-> **Version** : 2.4 · **Statut** : Draft · **Dernière mise à jour** : 18 Mai 2026  
+> **Version** : 2.5 · **Statut** : Draft · **Dernière mise à jour** : 18 Mai 2026  
 > **Auteur** : Thomas · **Contexte** : Projet perso — évolutif vers production
 
 ---
@@ -265,7 +265,7 @@ cooked/
 | `favorites` | userId (FK user), recipeId (FK recipes), createdAt — PK composite (userId, recipeId) |
 | `ratings` | id, userId (FK user), recipeId (FK recipes), score (1-5), createdAt — unique (userId, recipeId) |
 | `comments` | id, userId (FK user), recipeId (FK recipes), content, status (pending/approved/rejected), createdAt |
-| `audit_logs` | id, userId (FK user), action, targetId, targetType, metadata (JSON), createdAt |
+| `audit_logs` | id, userId (FK user), action, targetId, targetType, metadata (jsonb), createdAt |
 
 ### Flux de modération des commentaires
 
