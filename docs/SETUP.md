@@ -180,17 +180,21 @@ Turborepo lance l'API et le web en parallèle.
 
 À faire **une seule fois** après le premier `db:push`.
 
-Depuis `apps/api/` :
+Ajouter les variables d'environnement dans `apps/api/.env` :
+
+```env
+ADMIN_EMAIL=ton-email@example.com
+ADMIN_PASSWORD=un_mot_de_passe_fort_12_chars_min
+ADMIN_NAME=Prenom
+```
+
+Puis depuis `apps/api/` :
 
 ```powershell
 node --env-file=.env --import tsx/esm src/scripts/seed-admin.ts
 ```
 
-Crée l'admin par défaut :
-- **Email :** `admin@cooked.fr`
-- **Mot de passe :** `admin123456`
-
-> Pour personnaliser : `ADMIN_EMAIL=... ADMIN_PASSWORD=... node --env-file=.env --import tsx/esm src/scripts/seed-admin.ts`
+> Le mot de passe doit faire au minimum 12 caracteres. Les 3 variables d'environnement sont obligatoires.
 
 Accès au backoffice : **http://localhost:3000/compte/connexion** → connecte-toi → redirige vers `/admin`.
 

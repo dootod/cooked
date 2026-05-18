@@ -6,9 +6,19 @@ import { auth } from "../lib/auth.js";
 import { db, user as userTable } from "@cooked/db";
 import { eq } from "drizzle-orm";
 
-const EMAIL = process.env.ADMIN_EMAIL ?? "admin@cooked.fr";
-const PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123456";
-const NAME = process.env.ADMIN_NAME ?? "Admin";
+const EMAIL = process.env.ADMIN_EMAIL;
+const PASSWORD = process.env.ADMIN_PASSWORD;
+const NAME = process.env.ADMIN_NAME;
+
+if (!EMAIL || !PASSWORD || !NAME) {
+  console.error("Required env vars: ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME");
+  process.exit(1);
+}
+
+if (PASSWORD.length < 12) {
+  console.error("ADMIN_PASSWORD must be at least 12 characters");
+  process.exit(1);
+}
 
 console.log(`Creating admin: ${EMAIL}`);
 
@@ -26,5 +36,5 @@ try {
 }
 
 await db.update(userTable).set({ role: "admin" }).where(eq(userTable.email, EMAIL));
-console.log("Done. Admin created:", EMAIL, "/ password:", PASSWORD);
+console.log("Done. Admin created:", EMAIL);
 process.exit(0);
