@@ -26,6 +26,12 @@ function validateMagicBytes(buffer: Buffer, ext: string): boolean {
     const brand = buffer.subarray(8, 12).toString("ascii");
     return ftyp === "ftyp" && AVIF_BRANDS.has(brand);
   }
+  if (ext === "webp") {
+    if (buffer.length < 12) return false;
+    const riff = MAGIC_BYTES["webp"]!;
+    const isRiff = riff.every((byte, i) => buffer[i] === byte);
+    return isRiff && buffer.subarray(8, 12).toString("ascii") === "WEBP";
+  }
   const expected = MAGIC_BYTES[ext];
   if (!expected) return false;
   if (buffer.length < expected.length) return false;

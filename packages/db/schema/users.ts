@@ -1,4 +1,5 @@
 import {
+  check,
   index,
   integer,
   pgEnum,
@@ -8,6 +9,7 @@ import {
   timestamp,
   unique,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { user } from "./auth.js";
 import { recipes } from "./recipes.js";
 
@@ -53,6 +55,8 @@ export const ratings = pgTable(
   (t) => [
     unique("uq_ratings_user_recipe").on(t.userId, t.recipeId),
     index("idx_ratings_recipe_id").on(t.recipeId),
+    index("idx_ratings_user_id").on(t.userId),
+    check("check_score_range", sql`${t.score} >= 1 AND ${t.score} <= 5`),
   ],
 );
 

@@ -91,15 +91,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setSidebarOpen(false);
   }, [pathname]);
 
-  if (isPending) {
+  if (isPending || !session || session.user?.role !== "admin") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0F1629]">
         <div className="w-8 h-8 border-2 border-white/10 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
-
-  if (!session || session.user?.role !== "admin") return null;
 
   const user = session.user;
 

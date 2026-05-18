@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -29,7 +29,10 @@ export const session = pgTable("session", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   impersonatedBy: text("impersonated_by"),
-});
+}, (t) => [
+  index("idx_session_user_id").on(t.userId),
+  index("idx_session_expires_at").on(t.expiresAt),
+]);
 
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
@@ -47,7 +50,10 @@ export const account = pgTable("account", {
   password: text("password"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
-});
+}, (t) => [
+  index("idx_account_user_id").on(t.userId),
+  unique("uq_account_provider").on(t.accountId, t.providerId),
+]);
 
 export const twoFactor = pgTable("two_factor", {
   id: text("id").primaryKey(),
@@ -57,7 +63,9 @@ export const twoFactor = pgTable("two_factor", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   verified: boolean("verified").default(true),
-});
+}, (t) => [
+  index("idx_two_factor_user_id").on(t.userId),
+]);
 
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
