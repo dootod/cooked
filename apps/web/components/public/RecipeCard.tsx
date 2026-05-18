@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type RecipeCardData = {
@@ -41,10 +42,12 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
       >
         <div className="absolute inset-0">
           {hasImage ? (
-            <img
+            <Image
               src={recipe.primaryMedia!.url}
               alt={recipe.primaryMedia!.alt ?? recipe.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-primary/60 to-accent/40" />
@@ -133,10 +136,12 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
     >
       <div className="aspect-[4/3] relative overflow-hidden">
         {hasImage ? (
-          <img
+          <Image
             src={recipe.primaryMedia!.url}
             alt={recipe.primaryMedia!.alt ?? recipe.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-light to-accent-light flex items-center justify-center">

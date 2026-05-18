@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RecipeClientFeatures } from "./RecipeClientFeatures";
@@ -105,10 +106,13 @@ export default async function RecetteDetailPage({
       <section className="relative h-[55vh] min-h-[420px] max-h-[650px] overflow-hidden">
         <div className="absolute inset-0 bg-[#0a0f1e]">
           {primaryMedia && (
-            <img
+            <Image
               src={primaryMedia.url}
               alt={primaryMedia.alt ?? recipe.title}
-              className="w-full h-full object-cover opacity-40"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover opacity-40"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1e] via-[#0a0f1e]/60 to-transparent" />
@@ -321,11 +325,13 @@ export default async function RecetteDetailPage({
                     <div className="p-4 sm:p-5 rounded-xl bg-white border border-border/20 shadow-sm hover:shadow-md hover:border-primary/15 transition-all">
                       <p className="text-text leading-relaxed">{step.content}</p>
                       {step.mediaUrl && (
-                        <div className="mt-3 rounded-lg overflow-hidden max-w-sm">
-                          <img
+                        <div className="mt-3 rounded-lg overflow-hidden max-w-sm relative aspect-video">
+                          <Image
                             src={step.mediaUrl}
                             alt={`Etape ${i + 1}`}
-                            className="w-full"
+                            fill
+                            sizes="384px"
+                            className="object-cover"
                           />
                         </div>
                       )}
@@ -352,12 +358,14 @@ export default async function RecetteDetailPage({
                   {gallery.map((media) => (
                     <div
                       key={media.id}
-                      className="shrink-0 w-40 h-40 sm:w-52 sm:h-52 rounded-xl overflow-hidden snap-start"
+                      className="shrink-0 w-40 h-40 sm:w-52 sm:h-52 rounded-xl overflow-hidden snap-start relative"
                     >
-                      <img
+                      <Image
                         src={media.url}
-                        alt={media.alt ?? ""}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        alt={media.alt ?? recipe.title}
+                        fill
+                        sizes="(max-width: 640px) 160px, 208px"
+                        className="object-cover hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   ))}

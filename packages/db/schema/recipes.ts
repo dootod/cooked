@@ -66,6 +66,7 @@ export const recipes = pgTable("recipes", {
   deletedAt: timestamp("deleted_at"),
 }, (t) => [
   index("idx_recipes_status").on(t.status),
+  index("idx_recipes_deleted_at").on(t.deletedAt),
 ]);
 
 export const ingredients = pgTable(

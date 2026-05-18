@@ -80,7 +80,7 @@ app.delete("/:id", async (c) => {
     targetType: "user",
   });
 
-  return c.json({ success: true });
+  return c.json({ ok: true });
 });
 
 app.patch("/:id", async (c) => {

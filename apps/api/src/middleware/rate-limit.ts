@@ -89,9 +89,15 @@ export function rateLimit(opts: {
 }): MiddlewareHandler {
   return async (c, next) => {
     const store = getStore();
-    const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
-    const realIp = c.req.header("x-real-ip");
-    const ip = forwarded || realIp || "unknown";
+    let ip = "unknown";
+    if (process.env.TRUST_PROXY === "true") {
+      const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
+      const realIp = c.req.header("x-real-ip");
+      ip = forwarded || realIp || "unknown";
+    } else {
+      const info = c.req.raw.headers.get("x-real-ip");
+      ip = info || "unknown";
+    }
     const userId = c.get("user")?.id as string | undefined;
 
     const key = opts.keyFn

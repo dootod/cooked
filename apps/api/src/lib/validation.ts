@@ -93,6 +93,10 @@ export const commentStatusSchema = z.object({
   status: z.enum(["approved", "rejected"]),
 });
 
+export const createCommentSchema = z.object({
+  content: z.string().min(1, "Commentaire requis").max(MAX_CONTENT),
+});
+
 export const userPatchSchema = z.object({
   role: z.enum(["user", "admin"]).optional(),
   banned: z.boolean().optional(),

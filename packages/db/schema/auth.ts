@@ -74,4 +74,7 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
-});
+}, (t) => [
+  index("idx_verification_identifier").on(t.identifier),
+  index("idx_verification_expires_at").on(t.expiresAt),
+]);

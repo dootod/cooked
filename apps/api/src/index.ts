@@ -18,6 +18,7 @@ import adminTagsRoutes from "./routes/admin/tags.js";
 import categoriesRoutes from "./routes/categories.js";
 import meRoutes from "./routes/me.js";
 import recipesRoutes from "./routes/recipes.js";
+import commentsRoutes from "./routes/comments.js";
 import tagsRoutes from "./routes/tags.js";
 
 function formatZodErrors(issues: z.ZodIssue[]): string[] {
@@ -48,6 +49,17 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("*", async (c, next) => {
+  const method = c.req.method;
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
+    const origin = c.req.header("origin");
+    if (origin && !allowedOrigins.includes(origin)) {
+      return c.json({ error: "Origin non autorisee" }, 403);
+    }
+  }
+  await next();
+});
 
 app.use("*", async (c, next) => {
   const cl = c.req.header("content-length");
@@ -121,6 +133,7 @@ app.use("/api/categories/*", publicRateLimit);
 app.use("/api/tags", publicRateLimit);
 app.use("/api/tags/*", publicRateLimit);
 app.route("/api/recipes", recipesRoutes);
+app.route("/api/recipes", commentsRoutes);
 app.route("/api/categories", categoriesRoutes);
 app.route("/api/tags", tagsRoutes);
 const meRateLimit = userRateLimit({ windowMs: 60_000, max: 30 });

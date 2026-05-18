@@ -26,11 +26,13 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     try {
       body = await res.json();
     } catch {}
-    throw new ApiError(
+    const err = new ApiError(
       res.status,
       body.error || `Erreur ${res.status}`,
       body.details,
     );
+    console.error(`[API ${res.status}] ${options?.method ?? "GET"} ${path}:`, err.message);
+    throw err;
   }
 
   return res.json() as Promise<T>;

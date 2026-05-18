@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession, signOut, authClient } from "@/lib/auth";
 import { api } from "@/lib/api";
@@ -92,10 +93,12 @@ export default function ProfilPage() {
       <div className="public-glow-card rounded-2xl p-6 sm:p-8 mb-6">
         <div className="flex items-center gap-4 mb-8">
           {user.image ? (
-            <img
+            <Image
               src={user.image}
               alt={user.name || "Avatar"}
-              className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
+              width={64}
+              height={64}
+              className="rounded-full object-cover border-2 border-primary/20"
             />
           ) : (
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-[18px] font-bold">

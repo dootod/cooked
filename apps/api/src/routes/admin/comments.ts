@@ -1,9 +1,9 @@
 import { Hono } from "hono";
-import { db, comments } from "@cooked/db";
-import { eq } from "drizzle-orm";
+import { db, comments, user, recipes } from "@cooked/db";
+import { count, desc, eq } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
-import { commentStatusSchema } from "../../lib/validation.js";
+import { commentStatusSchema, adminPaginationSchema } from "../../lib/validation.js";
 import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
@@ -12,11 +12,40 @@ const app = new Hono<AppEnv>();
 app.use("*", authMiddleware, adminMiddleware);
 
 app.get("/", async (c) => {
-  const rows = await db
-    .select()
-    .from(comments)
-    .where(eq(comments.status, "pending"));
-  return c.json({ comments: rows });
+  const query = adminPaginationSchema.parse(c.req.query());
+  const offset = (query.page - 1) * query.limit;
+
+  const [rows, [{ total }]] = await Promise.all([
+    db
+      .select({
+        id: comments.id,
+        content: comments.content,
+        status: comments.status,
+        createdAt: comments.createdAt,
+        userName: user.name,
+        userEmail: user.email,
+        recipeTitle: recipes.title,
+        recipeSlug: recipes.slug,
+      })
+      .from(comments)
+      .innerJoin(user, eq(comments.userId, user.id))
+      .innerJoin(recipes, eq(comments.recipeId, recipes.id))
+      .where(eq(comments.status, "pending"))
+      .orderBy(desc(comments.createdAt))
+      .limit(query.limit)
+      .offset(offset),
+    db.select({ total: count() }).from(comments).where(eq(comments.status, "pending")),
+  ]);
+
+  return c.json({
+    comments: rows,
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total,
+      totalPages: Math.ceil(total / query.limit),
+    },
+  });
 });
 
 app.patch("/:id", async (c) => {

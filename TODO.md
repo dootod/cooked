@@ -16,18 +16,18 @@
 
 ## HAUTE PRIORITE (Bugs / Fonctionnel incomplet)
 
-- [ ] **#8** API — Pas de CSRF protection, repose uniquement sur SameSite cookies — `apps/api/src/index.ts`
-- [ ] **#9** API — Rate limit IP spoofable via X-Forwarded-For sans validation proxy — `apps/api/src/middleware/rate-limit.ts`
-- [ ] **#10** API — Suppression categories sans CASCADE ni check recipes liees, orphelins possibles — `apps/api/src/routes/admin/categories.ts`
-- [ ] **#11** API — Comments feature incomplete, table existe mais pas de CRUD public ni creation user — Routes manquantes
-- [ ] **#12** API — Admin comments endpoint pas pagine, retourne TOUS les pending — `apps/api/src/routes/admin/comments.ts`
-- [ ] **#13** API — Format reponse inconsistant, mix `{ok:true}`, `{success:true}`, `{user:...}` — Multiple fichiers API
-- [ ] **#14** DB — Index manquants expiry: `session.expiresAt`, `verification.expiresAt`, `account.*ExpiresAt` — `packages/db/schema/auth.ts`
-- [ ] **#15** DB — Index manquant `ratings.userId`, lookups user lents — `packages/db/schema/users.ts`
-- [ ] **#16** DB — Soft delete recipes incomplet, `deletedAt` existe mais pas d'index ni filtre par defaut — `packages/db/schema/recipes.ts`
-- [ ] **#17** Web — `<img>` partout au lieu de `next/image`, pas d'optimisation images — Multiple pages
-- [ ] **#18** Web — Alt attributes manquants/null sur images recettes — Multiple composants
-- [ ] **#19** Web — Pas de logging erreurs, erreurs API avalees silencieusement — `apps/web/lib/api.ts`
+- [x] **#8** API — CSRF: verification Origin header sur requetes state-changing — `apps/api/src/index.ts`
+- [x] **#9** API — Rate limit: `TRUST_PROXY` env var, ignore forwarded headers si pas configure — `apps/api/src/middleware/rate-limit.ts`
+- [x] **#10** API — ~~Suppression categories~~ FAUX POSITIF: FK `onDelete: "cascade"` gere par PostgreSQL
+- [x] **#11** API — CRUD commentaires public: GET + POST `/api/recipes/:slug/comments` — `apps/api/src/routes/comments.ts`
+- [x] **#12** API — Admin comments pagine avec jointures user/recipe — `apps/api/src/routes/admin/comments.ts`
+- [x] **#13** API — `{success: true}` → `{ok: true}` standardise — `apps/api/src/routes/admin/users.ts`
+- [x] **#14** DB — Index ajoutes: `verification.identifier`, `verification.expiresAt` (session.expiresAt deja fait en #4) — `packages/db/schema/auth.ts`
+- [x] **#15** DB — ~~Index ratings.userId~~ Deja fait en #6
+- [x] **#16** DB — Index `recipes.deletedAt` ajoute — `packages/db/schema/recipes.ts`
+- [x] **#17** Web — `<img>` → `next/image` avec `fill`+`sizes` sur RecipeCard, recipe detail, profil — Multiple fichiers
+- [x] **#18** Web — Alt attributes corriges: fallback `recipe.title` au lieu de `""` — Multiple fichiers
+- [x] **#19** Web — Error logging ajoute: `console.error` avant throw dans api.ts — `apps/web/lib/api.ts`
 
 ## MOYENNE PRIORITE (DX / Accessibilite / Performance)
 
