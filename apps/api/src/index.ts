@@ -111,7 +111,7 @@ app.post("/api/auth/sign-in/email", async (c) => {
 
   return response;
 });
-app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
+app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 const publicRateLimit = rateLimit({ windowMs: 60_000, max: 100 });
 app.use("/api/recipes", publicRateLimit);
