@@ -12,14 +12,27 @@ class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-    credentials: "include",
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+      credentials: "include",
+    });
+  } catch (err: unknown) {
+    if (
+      err instanceof TypeError &&
+      typeof (err as NodeJS.ErrnoException).cause === "object" &&
+      ((err as NodeJS.ErrnoException).cause as NodeJS.ErrnoException)?.code === "ECONNREFUSED"
+    ) {
+      console.warn(`[API] ${options?.method ?? "GET"} ${path}: API not reachable yet, returning empty`);
+      return [] as unknown as T;
+    }
+    throw err;
+  }
 
   if (!res.ok) {
     let body: { error?: string; details?: unknown } = {};
