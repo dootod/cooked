@@ -62,17 +62,19 @@ export default function AdminDashboardPage() {
     async function load() {
       try {
         const [recipesRes, categoriesRes, usersRes] = await Promise.allSettled([
-          api.get<{ recipes: RecentRecipe[] }>("/api/admin/recipes"),
+          api.get<{ recipes: RecentRecipe[]; pagination: { total: number } }>("/api/admin/recipes?limit=200"),
           api.get<{ categories: Array<{ id: string }> }>("/api/admin/categories"),
           api.get<{ totalUsers: number; activeSessions: number }>("/api/admin/users/stats"),
         ]);
 
-        const recipes = recipesRes.status === "fulfilled" ? recipesRes.value.recipes : [];
+        const recipesData = recipesRes.status === "fulfilled" ? recipesRes.value : { recipes: [], pagination: { total: 0 } };
+        const recipes = recipesData.recipes;
+        const totalRecipes = recipesData.pagination.total;
         const categories = categoriesRes.status === "fulfilled" ? categoriesRes.value.categories : [];
         const userStats = usersRes.status === "fulfilled" ? usersRes.value : { totalUsers: 0, activeSessions: 0 };
 
         setStats({
-          total: recipes.length,
+          total: totalRecipes,
           published: recipes.filter((r) => r.status === "published").length,
           draft: recipes.filter((r) => r.status === "draft").length,
           categories: categories.length,

@@ -33,8 +33,8 @@ export default function AdminRecettesPage() {
 
   async function loadRecipes() {
     try {
-      const { recipes } = await api.get<{ recipes: Recipe[] }>("/api/admin/recipes");
-      setRecipes(recipes);
+      const data = await api.get<{ recipes: Recipe[]; pagination: { total: number } }>("/api/admin/recipes?limit=200");
+      setRecipes(data.recipes);
     } catch {
       setRecipes([]);
     }

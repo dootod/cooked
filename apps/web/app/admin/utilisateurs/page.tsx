@@ -23,7 +23,7 @@ export default function AdminUtilisateursPage() {
 
   async function load() {
     try {
-      const data = await api.get<{ users: User[] }>("/api/admin/users");
+      const data = await api.get<{ users: User[]; pagination: { total: number } }>("/api/admin/users?limit=200");
       setUsers(data.users);
     } catch {
       setUsers([]);

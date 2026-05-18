@@ -113,13 +113,19 @@ app.post("/api/auth/sign-in/email", async (c) => {
 });
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
-app.use("/api/recipes/*", rateLimit({ windowMs: 60_000, max: 100 }));
-app.use("/api/categories/*", rateLimit({ windowMs: 60_000, max: 100 }));
-app.use("/api/tags/*", rateLimit({ windowMs: 60_000, max: 100 }));
+const publicRateLimit = rateLimit({ windowMs: 60_000, max: 100 });
+app.use("/api/recipes", publicRateLimit);
+app.use("/api/recipes/*", publicRateLimit);
+app.use("/api/categories", publicRateLimit);
+app.use("/api/categories/*", publicRateLimit);
+app.use("/api/tags", publicRateLimit);
+app.use("/api/tags/*", publicRateLimit);
 app.route("/api/recipes", recipesRoutes);
 app.route("/api/categories", categoriesRoutes);
 app.route("/api/tags", tagsRoutes);
-app.use("/api/me/*", userRateLimit({ windowMs: 60_000, max: 30 }));
+const meRateLimit = userRateLimit({ windowMs: 60_000, max: 30 });
+app.use("/api/me", meRateLimit);
+app.use("/api/me/*", meRateLimit);
 app.route("/api/me", meRoutes);
 
 app.use("/api/admin/upload/*", rateLimit({ windowMs: 60_000, max: 20 }));
