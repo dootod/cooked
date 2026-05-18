@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         protocol: "http",
         hostname: "localhost",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
   async headers() {
@@ -34,7 +38,7 @@ const nextConfig: NextConfig = {
                     "script-src 'self' 'unsafe-inline'",
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
                     "font-src 'self' https://fonts.gstatic.com",
-                    `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"} https://*.r2.cloudflarestorage.com`,
+                    `img-src 'self' data: blob: ${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"} https://*.r2.cloudflarestorage.com https://images.unsplash.com`,
                     `connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}`,
                     "frame-src https://www.youtube.com https://player.vimeo.com",
                     "object-src 'none'",
