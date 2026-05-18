@@ -3,7 +3,7 @@ import { db, user, session } from "@cooked/db";
 import { eq, count, desc } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
-import { userPatchSchema } from "../../lib/validation.js";
+import { userPatchSchema, adminPaginationSchema } from "../../lib/validation.js";
 import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
@@ -26,6 +26,10 @@ app.get("/stats", async (c) => {
 });
 
 app.get("/", async (c) => {
+  const query = adminPaginationSchema.parse(c.req.query());
+  const offset = (query.page - 1) * query.limit;
+
+  const [totalResult] = await db.select({ count: count() }).from(user);
   const rows = await db
     .select({
       id: user.id,
@@ -40,8 +44,18 @@ app.get("/", async (c) => {
     })
     .from(user)
     .orderBy(desc(user.createdAt))
-    .limit(200);
-  return c.json({ users: rows });
+    .limit(query.limit)
+    .offset(offset);
+
+  return c.json({
+    users: rows,
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total: totalResult.count,
+      totalPages: Math.ceil(totalResult.count / query.limit),
+    },
+  });
 });
 
 app.delete("/:id", async (c) => {

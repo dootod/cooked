@@ -24,14 +24,14 @@
 - [x] **Email leak URL** — Ne plus passer l'email dans l'URL apres inscription
 - [x] **Security headers** — Ajouter X-Content-Type-Options, X-Frame-Options, Referrer-Policy sur toutes les reponses API
 
-## Phase 4 — Securite restante (a faire)
+## Phase 4 — Securite restante (fait)
 
-- [ ] **Rate limit persistant** — Remplacer le rate limit in-memory (Map) par un store Redis/Upstash pour survivre aux restarts et scaler horizontalement
-- [ ] **Email verification requise** — Bloquer les actions authentifiees (favoris, commentaires) tant que l'email n'est pas verifie
-- [ ] **Account lockout** — Verrouiller un compte apres 5 echecs de login consecutifs (lockout 15 min). Le rate limit IP seul ne suffit pas contre la rotation d'IP
-- [ ] **CSRF verification** — Verifier que Better Auth valide bien l'origin header contre `trustedOrigins` en production. Tester avec une requete cross-origin form POST
-- [ ] **callbackURL validation** — S'assurer que Better Auth refuse les callbackURL pointant vers des domaines non-trusted (ou hardcoder cote serveur)
-- [ ] **HSTS header** — Ajouter `Strict-Transport-Security: max-age=63072000; includeSubDomains` en production (HTTPS only)
-- [ ] **Pagination admin users** — Ajouter pagination sur GET /api/admin/users (actuellement limit 200 hardcode)
-- [ ] **Logs sensibles** — Passer les logs email (adresses) en mode debug uniquement, pas en info/warn en production
-- [ ] **MFA admin** — Ajouter l'authentification a deux facteurs pour les comptes admin (Better Auth TOTP plugin)
+- [x] **Rate limit persistant** — Store Redis/Upstash avec fallback in-memory. `@upstash/redis` installe, auto-detection via env vars UPSTASH_REDIS_REST_URL + TOKEN
+- [x] **Email verification requise** — Middleware `emailVerifiedMiddleware` bloque ajout/retrait favoris si email non verifie (403)
+- [x] **Account lockout** — 5 echecs login = lockout 15 min par email. Module `account-lockout.ts`, intercept sur POST /api/auth/sign-in/email
+- [x] **CSRF verification** — `trustedOrigins` configure dans Better Auth (split CORS_ORIGIN). Validation automatique par BA
+- [x] **callbackURL validation** — Couvert par `trustedOrigins` — BA refuse les callback vers domaines non-trusted
+- [x] **HSTS header** — `Strict-Transport-Security: max-age=63072000; includeSubDomains` en production uniquement
+- [x] **Pagination admin users** — Schema `adminPaginationSchema` (max 200, default 50), pagination avec total/totalPages
+- [x] **Logs sensibles** — Adresses email masquees en production, visibles uniquement en dev
+- [x] **MFA admin** — Better Auth TOTP plugin active. Page `/compte/securite` pour activer/desactiver 2FA. QR code + backup codes. Verification TOTP sur page connexion

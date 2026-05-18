@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn, useSession } from "@/lib/auth";
+import { signIn, useSession, authClient } from "@/lib/auth";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
@@ -30,8 +32,27 @@ export default function ConnexionPage() {
 
     if (authError) {
       setError(authError.message || "Email ou mot de passe incorrect.");
+    } else if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      setTwoFactorRequired(true);
     } else if (data?.user) {
       router.push(data.user.role === "admin" ? "/admin" : "/");
+      router.refresh();
+    }
+
+    setLoading(false);
+  }
+
+  async function handleTOTPVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const { data, error: verifyError } = await authClient.twoFactor.verifyTotp({ code: totpCode });
+
+    if (verifyError) {
+      setError(verifyError.message || "Code invalide");
+    } else if (data?.user) {
+      router.push((data.user as Record<string, unknown>).role === "admin" ? "/admin" : "/");
       router.refresh();
     }
 
@@ -141,86 +162,156 @@ export default function ConnexionPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-2 tracking-wide">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="vous@exemple.fr"
-                className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
-              />
-            </div>
+          {!twoFactorRequired ? (
+            <>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-[12px] font-semibold text-text-secondary mb-2 tracking-wide">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="vous@exemple.fr"
+                    className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-[12px] font-semibold text-text-secondary mb-2 tracking-wide">
-                Mot de passe
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
-              />
-            </div>
+                <div>
+                  <label className="block text-[12px] font-semibold text-text-secondary mb-2 tracking-wide">
+                    Mot de passe
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 placeholder:text-text-tertiary/60"
+                  />
+                </div>
 
-            <div className="flex justify-end">
-              <Link
-                href="/compte/mot-de-passe-oublie"
-                className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
-              >
-                Mot de passe oublie ?
-              </Link>
-            </div>
+                <div className="flex justify-end">
+                  <Link
+                    href="/compte/mot-de-passe-oublie"
+                    className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
+                  >
+                    Mot de passe oublie ?
+                  </Link>
+                </div>
 
-            {error && (
-              <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="15" y1="9" x2="9" y2="15" />
-                  <line x1="9" y1="9" x2="15" y2="15" />
-                </svg>
-                {error}
+                {error && (
+                  <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="15" y1="9" x2="9" y2="15" />
+                      <line x1="9" y1="9" x2="15" y2="15" />
+                    </svg>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_28px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Connexion...
+                    </span>
+                  ) : (
+                    "Se connecter"
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-8 flex items-center gap-3">
+                <div className="flex-1 h-px bg-border/40" />
+                <span className="text-[12px] text-text-tertiary">ou</span>
+                <div className="flex-1 h-px bg-border/40" />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_28px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Connexion...
-                </span>
-              ) : (
-                "Se connecter"
+              <p className="mt-6 text-[13px] text-text-secondary text-center">
+                Pas encore de compte ?{" "}
+                <Link
+                  href="/compte/inscription"
+                  className="font-semibold text-primary hover:text-primary-hover transition-colors"
+                >
+                  Créer un compte
+                </Link>
+              </p>
+            </>
+          ) : (
+            <form onSubmit={handleTOTPVerify} className="space-y-5">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[15px] font-semibold text-text">Verification 2FA</p>
+                  <p className="text-[12px] text-text-secondary">
+                    Entrez le code de votre application d&apos;authentification
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[12px] font-semibold text-text-secondary mb-2 tracking-wide">
+                  Code a 6 chiffres
+                </label>
+                <input
+                  type="text"
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                  className="w-full px-4 py-3 text-[14px] text-text bg-white border border-border/60 rounded-xl outline-none transition-all duration-200 hover:border-primary/40 focus:border-primary focus:ring-[3px] focus:ring-primary/10 tracking-[0.5em] text-center font-mono"
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                  </svg>
+                  {error}
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="mt-8 flex items-center gap-3">
-            <div className="flex-1 h-px bg-border/40" />
-            <span className="text-[12px] text-text-tertiary">ou</span>
-            <div className="flex-1 h-px bg-border/40" />
-          </div>
+              <button
+                type="submit"
+                disabled={loading || totpCode.length !== 6}
+                className="w-full py-3 bg-gradient-to-r from-primary to-primary/90 text-white text-[15px] font-semibold rounded-xl shadow-[0_4px_16px_rgba(79,111,232,0.3)] hover:shadow-[0_8px_28px_rgba(79,111,232,0.4)] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 cursor-pointer"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Verification...
+                  </span>
+                ) : (
+                  "Verifier"
+                )}
+              </button>
 
-          <p className="mt-6 text-[13px] text-text-secondary text-center">
-            Pas encore de compte ?{" "}
-            <Link
-              href="/compte/inscription"
-              className="font-semibold text-primary hover:text-primary-hover transition-colors"
-            >
-              Créer un compte
-            </Link>
-          </p>
+              <button
+                type="button"
+                onClick={() => { setTwoFactorRequired(false); setTotpCode(""); setError(""); }}
+                className="w-full py-2.5 text-[13px] font-medium text-text-secondary hover:text-text transition-colors cursor-pointer"
+              >
+                Retour a la connexion
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>

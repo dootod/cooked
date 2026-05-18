@@ -6,6 +6,7 @@ import { logger } from "hono/logger";
 import { z } from "zod";
 
 import { auth } from "./lib/auth.js";
+import { isLockedOut, recordFailedLogin, clearFailedLogins } from "./lib/account-lockout.js";
 import { rateLimit, userRateLimit } from "./middleware/rate-limit.js";
 import adminCategoriesRoutes from "./routes/admin/categories.js";
 import adminCommentsRoutes from "./routes/admin/comments.js";
@@ -28,6 +29,9 @@ app.use("*", async (c, next) => {
   c.header("X-Frame-Options", "DENY");
   c.header("X-XSS-Protection", "0");
   c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  if (process.env.NODE_ENV === "production") {
+    c.header("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+  }
 });
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
   .split(",")
@@ -62,6 +66,36 @@ app.use("/uploads/*", async (c, next) => {
 app.use("/uploads/*", serveStatic({ root: "./" }));
 
 app.use("/api/auth/*", rateLimit({ windowMs: 60_000, max: 10 }));
+app.post("/api/auth/sign-in/email", async (c) => {
+  const cloned = c.req.raw.clone();
+  let body: { email?: string } = {};
+  try {
+    body = (await cloned.json()) as { email?: string };
+  } catch {
+    // let auth.handler deal with bad body
+  }
+
+  const email = body.email ?? "";
+  if (email) {
+    const lockout = isLockedOut(email);
+    if (lockout.locked) {
+      return c.json(
+        { error: "Compte temporairement verrouille. Reessayez dans " + lockout.retryAfterSeconds + " secondes." },
+        429,
+      );
+    }
+  }
+
+  const response = await auth.handler(c.req.raw);
+
+  if (!response.ok && email) {
+    recordFailedLogin(email);
+  } else if (response.ok && email) {
+    clearFailedLogins(email);
+  }
+
+  return response;
+});
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
 app.use("/api/recipes/*", rateLimit({ windowMs: 60_000, max: 100 }));

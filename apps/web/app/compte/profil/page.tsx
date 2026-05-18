@@ -193,7 +193,7 @@ export default function ProfilPage() {
         </form>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3 mb-3">
         <Link
           href="/compte/favoris"
           className="flex-1 flex items-center gap-3 px-5 py-4 public-glow-card rounded-xl hover-lift cursor-pointer"
@@ -209,6 +209,24 @@ export default function ProfilPage() {
           </div>
         </Link>
 
+        <Link
+          href="/compte/securite"
+          className="flex-1 flex items-center gap-3 px-5 py-4 public-glow-card rounded-xl hover-lift cursor-pointer"
+        >
+          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[13px] font-semibold text-text">Securite</p>
+            <p className="text-[11px] text-text-secondary">Authentification a deux facteurs</p>
+          </div>
+        </Link>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={handleLogout}
           className="flex-1 flex items-center gap-3 px-5 py-4 public-glow-card rounded-xl hover:border-red-200 transition-all cursor-pointer"

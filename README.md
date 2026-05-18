@@ -14,7 +14,8 @@ Plateforme web de gestion et consultation de recettes culinaires — monorepo Ty
 | API | Hono 4.12.x + Node.js 24 LTS |
 | Frontend | Next.js 16 App Router |
 | Base de données | Drizzle ORM 0.45.x + PostgreSQL |
-| Auth | Better Auth 1.6.x |
+| Auth | Better Auth 1.6.x (email/password + TOTP 2FA + admin plugin) |
+| Rate Limiting | Upstash Redis (prod) / in-memory (dev) |
 | Médias | Cloudflare R2 |
 | Emails | Resend |
 
@@ -50,13 +51,16 @@ cooked/
 - [x] Phase 1 — Categories dynamiques avec icones SVG + assignation recettes
 - [x] Phase 1 — Pages profil et favoris (frontend complet)
 - [x] Phase 1 — Securite renforcee (rate limiting, password complexity, enum validation)
+- [x] Phase 1 — Email verification + password reset (Resend)
+- [x] Phase 1 — Gestion utilisateurs admin (ban, role, suppression, audit logs)
 - [ ] Phase 1 — Migration upload vers Cloudflare R2
 - [ ] Phase 1 — Deploiement Vercel + VPS
 - [x] Phase 2 — Favoris (API + frontend complet)
 - [ ] Phase 2 — Notation, commentaires membres (frontend)
 - [ ] Phase 2 — Recherche full-text + filtres avances
 - [ ] Phase 3 — Liste de courses PDF, analytics backoffice
-- [ ] Phase 4 — i18n, API publique documentee, app mobile
+- [x] Phase 4 — Securite avancee (Redis rate limit, account lockout, email verif requise, HSTS, MFA TOTP, CSRF, pagination admin)
+- [ ] Phase 5 — i18n, API publique documentee, app mobile
 
 ## Documentation
 

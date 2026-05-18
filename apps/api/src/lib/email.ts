@@ -12,12 +12,20 @@ export async function sendEmail(opts: {
   html: string;
 }) {
   if (!resend) {
-    console.warn("[Email] RESEND_API_KEY not set, skipping email to", opts.to);
-    console.warn("[Email] Subject:", opts.subject);
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[Email] RESEND_API_KEY not set, skipping email to", opts.to);
+      console.warn("[Email] Subject:", opts.subject);
+    } else {
+      console.warn("[Email] RESEND_API_KEY not set, skipping email");
+    }
     return;
   }
 
-  console.log("[Email] Sending to", opts.to, "subject:", opts.subject);
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[Email] Sending to", opts.to, "subject:", opts.subject);
+  } else {
+    console.log("[Email] Sending email, subject:", opts.subject);
+  }
 
   const { data, error } = await resend.emails.send({
     from: FROM,
@@ -31,5 +39,9 @@ export async function sendEmail(opts: {
     throw new Error(`Email send failed: ${error.message}`);
   }
 
-  console.log("[Email] Sent to", opts.to, "id:", data?.id);
+  if (process.env.NODE_ENV !== "production") {
+    console.log("[Email] Sent to", opts.to, "id:", data?.id);
+  } else {
+    console.log("[Email] Sent, id:", data?.id);
+  }
 }

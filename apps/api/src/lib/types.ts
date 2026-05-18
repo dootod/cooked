@@ -2,6 +2,7 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  emailVerified: boolean;
   role: string | null;
   image: string | null;
   banned: boolean | null;

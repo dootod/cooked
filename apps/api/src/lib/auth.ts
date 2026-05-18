@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin } from "better-auth/plugins";
-import { db, user, session, account, verification } from "@cooked/db";
+import { admin, twoFactor } from "better-auth/plugins";
+import { db, user, session, account, verification, twoFactor as twoFactorTable } from "@cooked/db";
 import { sendEmail } from "./email.js";
 import { verificationEmail, resetPasswordEmail } from "./email-templates.js";
 
@@ -16,7 +16,7 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: { user, session, account, verification },
+    schema: { user, session, account, verification, twoFactor: twoFactorTable },
   }),
   emailAndPassword: {
     enabled: true,
@@ -49,7 +49,12 @@ export const auth = betterAuth({
       }
     },
   },
-  plugins: [admin()],
+  plugins: [
+    admin(),
+    twoFactor({
+      issuer: "Cooked",
+    }),
+  ],
   databaseHooks: {
     user: {
       create: {

@@ -3,6 +3,7 @@ import { db, favorites, recipes, user } from "@cooked/db";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth.js";
+import { emailVerifiedMiddleware } from "../middleware/email-verified.js";
 import type { AppEnv } from "../lib/types.js";
 
 const updateProfileSchema = z.object({
@@ -59,8 +60,8 @@ app.get("/favorites", async (c) => {
   return c.json({ favorites: rows });
 });
 
-app.post("/favorites/:id", async (c) => {
-  const recipeId = c.req.param("id");
+app.post("/favorites/:id", emailVerifiedMiddleware, async (c) => {
+  const recipeId = c.req.param("id") as string;
   const u = c.get("user");
 
   const [recipe] = await db
@@ -86,8 +87,8 @@ app.post("/favorites/:id", async (c) => {
   return c.json({ ok: true }, 201);
 });
 
-app.delete("/favorites/:id", async (c) => {
-  const recipeId = c.req.param("id");
+app.delete("/favorites/:id", emailVerifiedMiddleware, async (c) => {
+  const recipeId = c.req.param("id") as string;
   const u = c.get("user");
 
   await db

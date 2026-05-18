@@ -71,6 +71,12 @@ R2_PUBLIC_URL=
 
 # Resend — laisser vide jusqu'à la phase emails
 RESEND_API_KEY=
+EMAIL_FROM=Cooked <noreply@cooked.app>
+
+# Upstash Redis — laisser vide en dev (fallback in-memory)
+# En production : creer un compte sur upstash.com et remplir ces valeurs
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
 > Pour générer `BETTER_AUTH_SECRET` rapidement dans PowerShell :
@@ -140,7 +146,7 @@ Sortie attendue :
 [✓] Changes applied
 ```
 
-Vérifier dans pgAdmin → `cooked` → **Schemas** → **public** → **Tables** — 18 tables doivent apparaitre : `recipes`, `categories`, `tags`, `equipment`, `ingredients`, `steps`, `macros`, `medias`, `recipes_categories`, `recipes_tags`, `recipes_equipment`, `comments`, `ratings`, `favorites`, `user`, `session`, `account`, `verification`.
+Vérifier dans pgAdmin → `cooked` → **Schemas** → **public** → **Tables** — 20 tables doivent apparaitre : `recipes`, `categories`, `tags`, `equipment`, `ingredients`, `steps`, `macros`, `medias`, `recipes_categories`, `recipes_tags`, `recipes_equipment`, `comments`, `ratings`, `favorites`, `user`, `session`, `account`, `verification`, `two_factor`, `audit_logs`.
 
 ---
 
@@ -236,11 +242,16 @@ cooked/
 │   │   ├── src/
 │   │   │   ├── index.ts              Point d'entrée Hono
 │   │   │   ├── lib/
-│   │   │   │   ├── auth.ts           Instance Better Auth
+│   │   │   │   ├── auth.ts           Instance Better Auth (email/password + TOTP 2FA)
+│   │   │   │   ├── account-lockout.ts Verrouillage compte apres echecs login
+│   │   │   │   ├── audit.ts          Audit logging actions admin
+│   │   │   │   ├── email.ts          Envoi emails via Resend
+│   │   │   │   ├── email-templates.ts Templates HTML emails
+│   │   │   │   ├── validation.ts     Schemas Zod
 │   │   │   │   └── utils.ts          generateSlug()
 │   │   │   ├── routes/               Routes API publiques
 │   │   │   │   └── admin/            Routes protégées admin
-│   │   │   ├── middleware/           auth.ts + admin.ts
+│   │   │   ├── middleware/           auth.ts + admin.ts + rate-limit.ts + email-verified.ts
 │   │   │   └── scripts/
 │   │   │       └── seed-admin.ts     Création compte admin
 │   │   └── .env                      Variables d'environnement API
@@ -252,7 +263,7 @@ cooked/
 │       │   └── RecipeForm.tsx        Formulaire recette (create + edit)
 │       ├── lib/
 │       │   ├── api.ts                Wrapper fetch → API Hono
-│       │   └── auth.ts               Client Better Auth + adminClient
+│       │   └── auth.ts               Client Better Auth (admin + twoFactor plugins)
 │       ├── proxy.ts                  Protection routes /admin (Next.js 16)
 │       └── .env                      Variables d'environnement Web
 └── packages/
@@ -260,7 +271,8 @@ cooked/
         ├── schema/
         │   ├── recipes.ts            Tables recettes, catégories, tags...
         │   ├── users.ts              Tables favoris, notes, commentaires
-        │   └── auth.ts               Tables Better Auth (user, session...)
+        │   ├── auth.ts               Tables Better Auth (user, session, two_factor...)
+        │   └── audit.ts              Table audit_logs
         ├── index.ts                  Export db + schéma
         ├── drizzle.config.ts         Config Drizzle Kit
         └── .env                      DATABASE_URL pour les migrations

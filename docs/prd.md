@@ -1,6 +1,6 @@
 # 🍳 Cooked — Product Requirements Document
 
-> **Version** : 2.3 · **Statut** : Draft · **Dernière mise à jour** : 16 Mai 2026  
+> **Version** : 2.4 · **Statut** : Draft · **Dernière mise à jour** : 18 Mai 2026  
 > **Auteur** : Thomas · **Contexte** : Projet perso — évolutif vers production
 
 ---
@@ -156,9 +156,10 @@ cooked/  (monorepo)
 | **Frontend public** | Next.js 16 (App Router) | 16.x | SSR + SSG pour SEO optimal, déployable gratuitement sur Vercel |
 | **Backoffice** | Next.js 16 — route `/admin` | 16.x | Même stack que le front, pas de dépôt supplémentaire à gérer |
 | **ORM / BDD** | Drizzle + PostgreSQL 16 | 0.45.x | Meilleur ORM TypeScript actuel, 100% typé, migrations en TS pur |
-| **Auth** | Better Auth | 1.6.x | Lib auth TypeScript moderne, plug-and-play, JWT + sessions + email |
+| **Auth** | Better Auth | 1.6.x | Lib auth TypeScript moderne, plug-and-play, sessions + email + TOTP 2FA + admin plugin |
 | **Stockage médias** | Cloudflare R2 | — | 10 Go/mois gratuits, compatible S3, zéro frais d'egress |
 | **Emails** | Resend | 6.x | SDK TypeScript officiel, gratuit jusqu'à 3 000 mails/mois |
+| **Rate Limiting** | Upstash Redis | 1.x | Store persistant HTTP-based, fallback in-memory en dev |
 | **Vidéo** | Embed YouTube / Vimeo | — | Gratuit, CDN mondial, zéro infra à gérer |
 | **CSS** | Tailwind CSS | 4.x | Utility-first, intégré via `@tailwindcss/postcss`, thème custom via `@theme` |
 | **Langage** | TypeScript | 5.x | Une seule langue sur toute la stack — idéal pour le vibe coding |
@@ -197,12 +198,18 @@ cooked/
 │   │   │   │       ├── comments.ts   ← modération
 │   │   │   │       └── users.ts
 │   │   │   ├── lib/
-│   │   │   │   ├── auth.ts           ← config Better Auth (adapter Drizzle, plugin admin)
-│   │   │   │   ├── validation.ts     ← schemas Zod (recettes, categories, commentaires, users)
+│   │   │   │   ├── auth.ts           ← config Better Auth (adapter Drizzle, plugins admin + twoFactor)
+│   │   │   │   ├── account-lockout.ts ← verrouillage compte apres echecs login
+│   │   │   │   ├── audit.ts          ← audit logging actions admin
+│   │   │   │   ├── email.ts          ← envoi emails via Resend
+│   │   │   │   ├── email-templates.ts ← templates HTML emails
+│   │   │   │   ├── validation.ts     ← schemas Zod (recettes, categories, commentaires, users, pagination)
 │   │   │   │   └── types.ts          ← types partages (AppEnv, AuthUser)
 │   │   │   ├── middleware/
 │   │   │   │   ├── auth.ts           ← vérification session Better Auth
-│   │   │   │   └── admin.ts          ← vérification rôle admin
+│   │   │   │   ├── admin.ts          ← vérification rôle admin
+│   │   │   │   ├── rate-limit.ts     ← rate limiting (Redis/in-memory dual store)
+│   │   │   │   └── email-verified.ts ← bloque actions si email non vérifié
 │   │   │   └── index.ts              ← point d'entrée Hono (catch-all /api/auth/** → Better Auth, error handler global)
 │   │   └── package.json
 │   │
@@ -219,7 +226,7 @@ cooked/
 │       │       └── RecipeForm.tsx     ← formulaire recette (création + édition)
 │       ├── lib/
 │       │   ├── api.ts                ← wrapper fetch → API Hono
-│       │   └── auth.ts               ← client Better Auth (signIn, signUp, signOut, useSession)
+│       │   └── auth.ts               ← client Better Auth (signIn, signUp, signOut, useSession, twoFactor)
 │       └── proxy.ts                  ← protection routes /admin
 │
 └── packages/
@@ -227,7 +234,8 @@ cooked/
         ├── schema/
         │   ├── recipes.ts
         │   ├── users.ts
-        │   ├── auth.ts              ← tables Better Auth (user, session, account, verification)
+        │   ├── auth.ts              ← tables Better Auth (user, session, account, verification, two_factor)
+        │   ├── audit.ts            ← table audit_logs
         │   └── index.ts
         ├── migrations/
         └── index.ts
@@ -249,13 +257,15 @@ cooked/
 | `macros` | id, recipeId, kcal, protein, carbs, fat |
 | `medias` | id, recipeId, url, alt, isPrimary |
 | `equipment` | id, name, iconSlug → lié à recipes (many-to-many) |
-| `user` | id, name, email, emailVerified, image, role, banned, banReason, banExpires, createdAt, updatedAt *(table Better Auth — source unique pour les utilisateurs)* |
+| `user` | id, name, email, emailVerified, image, role, banned, banReason, banExpires, twoFactorEnabled, createdAt, updatedAt *(table Better Auth — source unique pour les utilisateurs)* |
 | `session` | id, expiresAt, token, userId, ipAddress, userAgent, impersonatedBy *(Better Auth)* |
 | `account` | id, accountId, providerId, userId, accessToken, refreshToken, password *(Better Auth)* |
 | `verification` | id, identifier, value, expiresAt *(Better Auth)* |
+| `two_factor` | id, secret, backupCodes, userId, verified *(Better Auth TOTP plugin)* |
 | `favorites` | userId (FK user), recipeId (FK recipes), createdAt — PK composite (userId, recipeId) |
 | `ratings` | id, userId (FK user), recipeId (FK recipes), score (1-5), createdAt — unique (userId, recipeId) |
 | `comments` | id, userId (FK user), recipeId (FK recipes), content, status (pending/approved/rejected), createdAt |
+| `audit_logs` | id, userId (FK user), action, targetId, targetType, metadata (JSON), createdAt |
 
 ### Flux de modération des commentaires
 
@@ -309,9 +319,15 @@ Membre poste → status: pending
 | `POST` | `/api/admin/upload` | Upload image (multipart, max 5MB, JPEG/PNG/WebP/AVIF) |
 | `GET` | `/api/admin/comments` | File de modération (status=pending) |
 | `PATCH` | `/api/admin/comments/:id` | Approuver ou rejeter un commentaire |
-| `GET` | `/api/admin/users` | Liste des membres (table Better Auth `user`) |
+| `GET` | `/api/admin/users` | Liste paginee des membres (table Better Auth `user`) |
 | `GET` | `/api/admin/users/stats` | Nombre total d'utilisateurs + sessions actives |
 | `PATCH` | `/api/admin/users/:id` | Changer rôle / bannir un membre |
+| `DELETE` | `/api/admin/users/:id` | Supprimer un membre (audit log) |
+| `GET` | `/api/admin/tags` | Liste des tags |
+| `POST` | `/api/admin/tags` | Creer un tag |
+| `PUT` | `/api/admin/tags/:id` | Modifier un tag |
+| `DELETE` | `/api/admin/tags/:id` | Supprimer un tag |
+| `POST` | `/api/admin/cleanup/orphan-uploads` | Nettoyer les fichiers upload orphelins |
 
 ---
 
@@ -401,8 +417,12 @@ Le backoffice utilise un design distinct du site public, orienté productivité 
 | `/tags/[slug]` | Bento grid filtré par tag |
 | `/compte/connexion` | Connexion — split-screen : panneau décoratif dark (mesh gradients, branding) + formulaire |
 | `/compte/inscription` | Inscription — split-screen identique, champs nom/email/password/confirm, validation frontend |
-| `/compte/profil` | Profil membre — favoris, historique, paramètres |
-| `/compte/favoris` | Bento grid des recettes favorites |
+| `/compte/profil` | Profil membre — nom, email, badge verification, lien favoris + securite, deconnexion |
+| `/compte/favoris` | Grille des recettes favorites |
+| `/compte/securite` | Authentification a deux facteurs (TOTP) — activer/desactiver, QR code, backup codes |
+| `/compte/email-verifie` | Callback verification email (succes/erreur) |
+| `/compte/mot-de-passe-oublie` | Formulaire envoi email reset password |
+| `/compte/reinitialiser-mot-de-passe` | Formulaire reset password (token URL) |
 | `/compte/liste-de-courses` | Liste de courses en cours |
 | `/admin` | Dashboard backoffice — KPIs ring charts + actions rapides (accès restreint admin) |
 | `/admin/recettes` | Liste des recettes avec table, filtres statut/difficulté |
@@ -476,7 +496,18 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - Dashboard analytics backoffice
 - Statistiques recettes (vues, favoris, note moyenne)
 
-### Phase 4 — Scale
+### Phase 4 — Securite avancee
+- [x] Rate limit persistant (Upstash Redis en prod, in-memory en dev, auto-detection env vars)
+- [x] Email verification requise pour actions authentifiees (favoris, commentaires)
+- [x] Account lockout (5 echecs login = 15 min lockout par email)
+- [x] CSRF verification (trustedOrigins Better Auth)
+- [x] callbackURL validation (trustedOrigins)
+- [x] HSTS header en production (max-age=63072000; includeSubDomains)
+- [x] Pagination admin users (schema adminPaginationSchema, max 200)
+- [x] Logs sensibles (emails masques en production)
+- [x] MFA admin TOTP (Better Auth twoFactor plugin, QR code, backup codes, verification login)
+
+### Phase 5 — Scale
 - i18n (anglais)
 - API publique documentée (OpenAPI / Swagger)
 - Application mobile (Flutter ou PWA)
@@ -499,4 +530,4 @@ Nom de l'app : **Cooked**. Domaines à vérifier par ordre de préférence :
 
 ---
 
-*Cooked — PRD v2.1 — Document de travail, non contractuel*
+*Cooked — PRD v2.4 — Document de travail, non contractuel*

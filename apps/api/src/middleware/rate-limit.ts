@@ -1,13 +1,86 @@
 import type { MiddlewareHandler } from "hono";
+import { Redis } from "@upstash/redis";
 
-const store = new Map<string, { count: number; resetAt: number }>();
+interface RateLimitStore {
+  check(key: string, windowMs: number, max: number): Promise<{ allowed: boolean; retryAfterMs: number }>;
+}
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of store) {
-    if (val.resetAt < now) store.delete(key);
+class MemoryStore implements RateLimitStore {
+  private store = new Map<string, { count: number; resetAt: number }>();
+
+  constructor() {
+    setInterval(() => {
+      const now = Date.now();
+      for (const [key, val] of this.store) {
+        if (val.resetAt < now) this.store.delete(key);
+      }
+    }, 60_000);
   }
-}, 60_000);
+
+  async check(key: string, windowMs: number, max: number) {
+    const now = Date.now();
+    const record = this.store.get(key);
+
+    if (!record || record.resetAt < now) {
+      this.store.set(key, { count: 1, resetAt: now + windowMs });
+      return { allowed: true, retryAfterMs: 0 };
+    }
+
+    record.count++;
+    if (record.count > max) {
+      return { allowed: false, retryAfterMs: record.resetAt - now };
+    }
+    return { allowed: true, retryAfterMs: 0 };
+  }
+}
+
+class RedisStore implements RateLimitStore {
+  private redis: Redis;
+
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
+
+  async check(key: string, windowMs: number, max: number) {
+    const redisKey = `rl:${key}`;
+    const now = Date.now();
+    const windowStart = now - windowMs;
+
+    const pipeline = this.redis.pipeline();
+    pipeline.zremrangebyscore(redisKey, 0, windowStart);
+    pipeline.zadd(redisKey, { score: now, member: `${now}:${Math.random()}` });
+    pipeline.zcard(redisKey);
+    pipeline.pexpire(redisKey, windowMs);
+
+    const results = await pipeline.exec();
+    const count = results[2] as number;
+
+    if (count > max) {
+      return { allowed: false, retryAfterMs: windowMs };
+    }
+    return { allowed: true, retryAfterMs: 0 };
+  }
+}
+
+let sharedStore: RateLimitStore | null = null;
+
+function getStore(): RateLimitStore {
+  if (sharedStore) return sharedStore;
+
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+    sharedStore = new RedisStore(redis);
+    console.log("[RateLimit] Using Redis store (Upstash)");
+  } else {
+    sharedStore = new MemoryStore();
+    console.log("[RateLimit] Using in-memory store (set UPSTASH_REDIS_REST_URL + TOKEN for Redis)");
+  }
+
+  return sharedStore;
+}
 
 export function rateLimit(opts: {
   windowMs: number;
@@ -15,6 +88,7 @@ export function rateLimit(opts: {
   keyFn?: (c: { ip: string; userId?: string; method: string; path: string }) => string;
 }): MiddlewareHandler {
   return async (c, next) => {
+    const store = getStore();
     const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
     const realIp = c.req.header("x-real-ip");
     const ip = forwarded || realIp || "unknown";
@@ -24,19 +98,10 @@ export function rateLimit(opts: {
       ? opts.keyFn({ ip, userId, method: c.req.method, path: c.req.path })
       : `${ip}:${c.req.method}:${c.req.path}`;
 
-    const now = Date.now();
-    const record = store.get(key);
+    const result = await store.check(key, opts.windowMs, opts.max);
 
-    if (!record || record.resetAt < now) {
-      store.set(key, { count: 1, resetAt: now + opts.windowMs });
-      await next();
-      return;
-    }
-
-    record.count++;
-
-    if (record.count > opts.max) {
-      c.header("Retry-After", String(Math.ceil((record.resetAt - now) / 1000)));
+    if (!result.allowed) {
+      c.header("Retry-After", String(Math.ceil(result.retryAfterMs / 1000)));
       return c.json({ error: "Trop de requetes. Reessayez plus tard." }, 429);
     }
 
