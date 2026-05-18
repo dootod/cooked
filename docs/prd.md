@@ -511,6 +511,13 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - [x] Upload AVIF : validation ftyp + major brand (avif/avis/mif1) aux bytes 4-12
 - [x] Session 3 jours (reduit de 7j), updateAge 1 jour, cookieCache 5 min
 - [x] Proxy cookie forwarding : forward correct cookie name (__Secure- prefix en prod)
+- [x] Body size limit : middleware Content-Length (1MB general, 6MB upload, 413 si depasse)
+- [x] Video URL whitelist : YouTube + Vimeo obligatoire via Zod refine (HTTPS)
+- [x] Media URL whitelist : localhost/API_PUBLIC_URL/R2_PUBLIC_URL dynamique
+- [x] Email masking logs : maskEmail() partout (dev + prod), max 3 chars visibles
+- [x] Audit metadata jsonb : colonne text → jsonb, queries natives PostgreSQL
+- [x] Index DB : idx_user_role (user.role), idx_recipes_status (recipes.status)
+- [x] Pagination admin recipes : adminPaginationSchema (page + limit max 200, total + totalPages)
 
 ### Phase 5 — Scale
 - i18n (anglais)

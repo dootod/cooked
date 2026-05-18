@@ -3,6 +3,26 @@ import { z } from "zod";
 const MAX_TEXT = 500;
 const MAX_CONTENT = 5000;
 
+const VIDEO_URL_PATTERN = /^https:\/\/(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com|vimeo\.com)\/.+/;
+
+function isAllowedMediaUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "localhost") return true;
+    const apiBase = process.env.API_PUBLIC_URL;
+    if (apiBase) {
+      if (parsed.hostname === new URL(apiBase).hostname) return true;
+    }
+    const r2Base = process.env.R2_PUBLIC_URL;
+    if (r2Base) {
+      if (parsed.hostname === new URL(r2Base).hostname) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export const createRecipeSchema = z.object({
   title: z.string().min(1, "Titre requis").max(200),
   slug: z.string().max(200).optional(),
@@ -12,7 +32,9 @@ export const createRecipeSchema = z.object({
   difficulty: z.enum(["easy", "intermediate", "hard"]),
   servings: z.coerce.number().int().min(1).max(100),
   status: z.enum(["draft", "published"]).optional(),
-  videoUrl: z.string().url().max(MAX_TEXT).nullable().optional(),
+  videoUrl: z.string().url().max(MAX_TEXT)
+    .refine((url) => VIDEO_URL_PATTERN.test(url), { message: "URL video doit etre YouTube ou Vimeo" })
+    .nullable().optional(),
   macros: z
     .object({
       kcal: z.coerce.number().min(0).max(99999),
@@ -45,7 +67,8 @@ export const createRecipeSchema = z.object({
   medias: z
     .array(
       z.object({
-        url: z.string().url().max(500),
+        url: z.string().url().max(500)
+          .refine((url) => isAllowedMediaUrl(url), { message: "URL media non autorisee" }),
         alt: z.string().max(200).nullable().optional(),
         isPrimary: z.boolean().optional(),
       }),

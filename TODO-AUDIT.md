@@ -54,52 +54,34 @@ Audit du 2026-05-18. Chaque item classe par severite.
 
 ---
 
-## MOYENNE (a planifier)
+## MOYENNE (resolues le 2026-05-18)
 
-### 12. Pas de limit taille body globale
-- **Fichier:** `apps/api/src/index.ts`
-- **Probleme:** Aucune limite explicite sur taille des requetes. Un payload enorme pourrait saturer la memoire.
-- **Fix:** Ajouter middleware qui refuse `Content-Length > 5MB`.
+### 12. ~~Pas de limit taille body globale~~ RESOLU
+- **Fix applique:** Middleware Content-Length dans index.ts. Limite 1MB general, 6MB pour /api/admin/upload. Retourne 413 si depasse.
 
-### 13. Video URL sans whitelist de domaines
-- **Fichier:** `apps/api/src/lib/validation.ts:15`
-- **Probleme:** `z.string().url()` accepte n'importe quelle URL. Embed potentiel de sites malveillants.
-- **Fix:** Whitelist YouTube + Vimeo avec `.refine()`.
+### 13. ~~Video URL sans whitelist de domaines~~ RESOLU
+- **Fix applique:** `.refine()` sur videoUrl dans validation.ts. Whitelist: YouTube (youtube.com, youtu.be) + Vimeo (vimeo.com, player.vimeo.com). HTTPS obligatoire.
 
-### 14. Media URL sans whitelist de domaines
-- **Fichier:** `apps/api/src/lib/validation.ts:48`
-- **Probleme:** URL media accepte tout domaine. `next.config.ts` limite les images cote Next, mais l'API stocke tout.
-- **Fix:** Valider que URL vient de R2 ou localhost.
+### 14. ~~Media URL sans whitelist de domaines~~ RESOLU
+- **Fix applique:** `isAllowedMediaUrl()` dans validation.ts. Whitelist dynamique: localhost (dev), API_PUBLIC_URL hostname (prod), R2_PUBLIC_URL hostname (futur).
 
-### 15. Email log en dev expose les adresses
-- **Fichier:** `apps/api/src/lib/email.ts:24-28,42-43`
-- **Probleme:** Log complet `opts.to` en dev. Si les logs sont captures, emails exposes.
-- **Fix:** Masquer la partie apres `@` dans les logs dev.
+### 15. ~~Email log en dev expose les adresses~~ RESOLU
+- **Fix applique:** Fonction `maskEmail()` dans email.ts. Affiche max 3 premiers chars + `***@domain` dans tous les logs (dev et prod).
 
-### 16. Metadata audit en `text` au lieu de `jsonb`
-- **Fichier:** `packages/db/schema/audit.ts:16`
-- **Probleme:** `text("metadata")` stocke du JSON en string. Impossible de requeter efficacement.
-- **Fix:** Changer en `jsonb("metadata")` pour PostgreSQL.
+### 16. ~~Metadata audit en `text` au lieu de `jsonb`~~ RESOLU
+- **Fix applique:** Colonne metadata changee de `text` a `jsonb` dans audit.ts schema. Migration 0003. logAudit passe l'objet directement sans JSON.stringify.
 
-### 17. Pas de rate limit specifique favoris/delete
-- **Fichier:** `apps/api/src/routes/me.ts:63,90`
-- **Probleme:** POST/DELETE favoris proteges par email verification mais pas rate-limited specifiquement. Le rate limit global `/api/me/*` (30/min) est la, mais toggle rapide possible.
-- **Fix:** OK car couvert par le global 30/min. Optionnel: reduire a 15/min pour write ops.
+### 17. ~~Pas de rate limit specifique favoris/delete~~ VERIFIE
+- **Resultat:** Couvert par le rate limit global `/api/me/*` (30/min). Protection suffisante.
 
-### 18. Index manquants sur tables user et recipes
-- **Fichier:** `packages/db/schema/auth.ts`, `packages/db/schema/recipes.ts`
-- **Probleme:** Pas d'index sur `user.role` (requetes admin lentes) ni `recipes.status` (filtre published).
-- **Fix:** Ajouter `index("idx_user_role").on(t.role)` et `index("idx_recipes_status").on(t.status)`.
+### 18. ~~Index manquants sur tables user et recipes~~ RESOLU
+- **Fix applique:** `idx_user_role` sur user.role, `idx_recipes_status` sur recipes.status. Migration 0003.
 
-### 19. Uploads servis depuis meme domaine que l'API
-- **Fichier:** `apps/api/src/index.ts:60-66`
-- **Probleme:** `/uploads/*` servi par meme serveur Hono. Cookies API envoyes avec requetes upload.
-- **Fix:** En prod, servir depuis un sous-domaine ou CDN separe. CSP sur uploads est deja present (bon point).
+### 19. ~~Uploads servis depuis meme domaine que l'API~~ DIFFERE
+- **Raison:** Sera resolu par la migration vers Cloudflare R2 (Phase 1 restante). CSP restrictif deja en place sur /uploads/*.
 
-### 20. Pas de pagination sur GET admin recipes
-- **Fichier:** `apps/api/src/routes/admin/recipes.ts:21-28`
-- **Probleme:** `limit(200)` en dur, pas de pagination. Avec beaucoup de recettes, reponse lourde.
-- **Fix:** Utiliser `adminPaginationSchema` comme les autres routes admin.
+### 20. ~~Pas de pagination sur GET admin recipes~~ RESOLU
+- **Fix applique:** GET /api/admin/recipes utilise `adminPaginationSchema` (page + limit max 200). Retourne `{ recipes, pagination: { page, limit, total, totalPages } }`.
 
 ---
 
@@ -166,15 +148,15 @@ Audit du 2026-05-18. Chaque item classe par severite.
 - [x] Reduire session duration (7j → 3j)
 - [x] Fix proxy cookie forwarding (__Secure- prefix)
 
-### Semaine 3 — Moyennes
-- [ ] Body size limit middleware
-- [ ] Whitelist video URLs (YouTube/Vimeo)
-- [ ] Whitelist media URLs (R2/localhost)
-- [ ] Masquer emails dans logs dev
-- [ ] Metadata audit en jsonb
-- [ ] Index user.role + recipes.status
-- [ ] Pagination admin recipes
-- [ ] Plan CDN pour uploads
+### Semaine 3 — Moyennes (FAIT)
+- [x] Body size limit middleware (1MB general, 6MB upload)
+- [x] Whitelist video URLs (YouTube/Vimeo)
+- [x] Whitelist media URLs (localhost/API_PUBLIC_URL/R2_PUBLIC_URL)
+- [x] Masquer emails dans logs (maskEmail)
+- [x] Metadata audit en jsonb (migration 0003)
+- [x] Index user.role + recipes.status (migration 0003)
+- [x] Pagination admin recipes (adminPaginationSchema)
+- [x] Plan CDN pour uploads (differe → migration R2)
 
 ### Plus tard — Basses
 - [ ] Admin middleware null-check explicite

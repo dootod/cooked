@@ -1,4 +1,4 @@
-import { index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { user } from "./auth.js";
 
 export const auditLogs = pgTable(
@@ -13,7 +13,7 @@ export const auditLogs = pgTable(
     action: text("action").notNull(),
     targetId: text("target_id"),
     targetType: text("target_type"),
-    metadata: text("metadata"),
+    metadata: jsonb("metadata"),
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [

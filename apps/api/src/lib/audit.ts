@@ -24,6 +24,6 @@ export async function logAudit(opts: {
     action: opts.action,
     targetId: opts.targetId ?? null,
     targetType: opts.targetType ?? null,
-    metadata: opts.metadata ? JSON.stringify(opts.metadata) : null,
+    metadata: opts.metadata ?? null,
   });
 }

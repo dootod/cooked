@@ -45,6 +45,17 @@ app.use(
   }),
 );
 
+app.use("*", async (c, next) => {
+  const cl = c.req.header("content-length");
+  if (cl) {
+    const limit = c.req.path.startsWith("/api/admin/upload") ? 6 * 1024 * 1024 : 1024 * 1024;
+    if (parseInt(cl, 10) > limit) {
+      return c.json({ error: "Payload trop volumineux" }, 413);
+    }
+  }
+  await next();
+});
+
 app.onError((err, c) => {
   if (err instanceof SyntaxError) {
     return c.json({ error: "Corps de requete invalide" }, 400);

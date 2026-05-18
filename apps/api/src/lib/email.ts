@@ -6,6 +6,12 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM = process.env.EMAIL_FROM ?? "Cooked <noreply@cooked.app>";
 
+function maskEmail(email: string): string {
+  const [local, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${local.slice(0, Math.min(3, local.length))}***@${domain}`;
+}
+
 export async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -13,7 +19,7 @@ export async function sendEmail(opts: {
 }) {
   if (!resend) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[Email] RESEND_API_KEY not set, skipping email to", opts.to);
+      console.warn("[Email] RESEND_API_KEY not set, skipping email to", maskEmail(opts.to));
       console.warn("[Email] Subject:", opts.subject);
     } else {
       console.warn("[Email] RESEND_API_KEY not set, skipping email");
@@ -22,7 +28,7 @@ export async function sendEmail(opts: {
   }
 
   if (process.env.NODE_ENV !== "production") {
-    console.log("[Email] Sending to", opts.to, "subject:", opts.subject);
+    console.log("[Email] Sending to", maskEmail(opts.to), "subject:", opts.subject);
   } else {
     console.log("[Email] Sending email, subject:", opts.subject);
   }
@@ -40,7 +46,7 @@ export async function sendEmail(opts: {
   }
 
   if (process.env.NODE_ENV !== "production") {
-    console.log("[Email] Sent to", opts.to, "id:", data?.id);
+    console.log("[Email] Sent to", maskEmail(opts.to), "id:", data?.id);
   } else {
     console.log("[Email] Sent, id:", data?.id);
   }

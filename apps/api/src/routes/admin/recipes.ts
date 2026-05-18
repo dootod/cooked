@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { db, recipes, ingredients, steps, macros, medias, recipesCategories, recipesTags } from "@cooked/db";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { generateSlug } from "../../lib/utils.js";
 import {
+  adminPaginationSchema,
   createRecipeSchema,
   updateRecipeSchema,
 } from "../../lib/validation.js";
@@ -19,13 +20,27 @@ const app = new Hono<AppEnv>();
 app.use("*", authMiddleware, adminMiddleware);
 
 app.get("/", async (c) => {
+  const query = adminPaginationSchema.parse(c.req.query());
+  const offset = (query.page - 1) * query.limit;
+
+  const [totalResult] = await db.select({ count: count() }).from(recipes).where(isNull(recipes.deletedAt));
   const rows = await db
     .select()
     .from(recipes)
     .where(isNull(recipes.deletedAt))
     .orderBy(desc(recipes.createdAt))
-    .limit(200);
-  return c.json({ recipes: rows });
+    .limit(query.limit)
+    .offset(offset);
+
+  return c.json({
+    recipes: rows,
+    pagination: {
+      page: query.page,
+      limit: query.limit,
+      total: totalResult.count,
+      totalPages: Math.ceil(totalResult.count / query.limit),
+    },
+  });
 });
 
 app.get("/:id", async (c) => {
