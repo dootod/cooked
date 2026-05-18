@@ -58,7 +58,23 @@
       "Bash(Format-Table -AutoSize)",
       "Bash(Select-Object FullName)",
       "WebSearch",
-      "WebFetch(domain:unsplash.com)"
+      "WebFetch(domain:unsplash.com)",
+      "Bash(pnpm db:push)",
+      "Bash(node --env-file=.env -e ' *)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm list *)",
+      "Bash(node *)",
+      "Bash(pnpm db:generate)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\laragon\\\\www\\\\cooked\" -Recurse -Directory -Depth 3 | Where-Object { $_.Name -match '^\\(apps|packages\\)$' -or $_.Parent.Name -match '^\\(apps|packages\\)$' } | Select-Object -ExpandProperty FullName | Sort-Object)",
+      "PowerShell(& \"C:\\\\laragon\\\\bin\\\\postgresql\\\\postgresql-17.4-1\\\\bin\\\\psql.exe\" -U postgres -d cooked -c \"SELECT hash, created_at FROM drizzle.__drizzle_migrations ORDER BY created_at;\")",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(git add *)",
+      "PowerShell(git push *)",
+      "Bash(pnpm --filter @cooked/db exec drizzle-kit studio)",
+      "Bash(pnpm db:migrate *)",
+      "Bash(taskkill *)"
     ]
   }
 }
