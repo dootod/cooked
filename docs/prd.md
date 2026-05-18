@@ -499,13 +499,18 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 ### Phase 4 — Securite avancee
 - [x] Rate limit persistant (Upstash Redis en prod, in-memory en dev, auto-detection env vars)
 - [x] Email verification requise pour actions authentifiees (favoris, commentaires)
-- [x] Account lockout (5 echecs login = 15 min lockout par email)
-- [x] CSRF verification (trustedOrigins Better Auth)
+- [x] Account lockout dual-store Redis/in-memory (5 echecs login = 15 min lockout par email)
+- [x] CSRF : SameSite=Lax (Better Auth defaut) + CORS origins explicites — pas de token explicite necessaire
 - [x] callbackURL validation (trustedOrigins)
 - [x] HSTS header en production (max-age=63072000; includeSubDomains)
 - [x] Pagination admin users (schema adminPaginationSchema, max 200)
 - [x] Logs sensibles (emails masques en production)
 - [x] MFA admin TOTP (Better Auth twoFactor plugin, QR code, backup codes, verification login)
+- [x] Audit logs complets (recipe.create, recipe.update, recipe.delete, user.*, comment.*)
+- [x] Soft delete recipes (colonne deletedAt, filtrage isNull sur toutes les queries)
+- [x] Upload AVIF : validation ftyp + major brand (avif/avis/mif1) aux bytes 4-12
+- [x] Session 3 jours (reduit de 7j), updateAge 1 jour, cookieCache 5 min
+- [x] Proxy cookie forwarding : forward correct cookie name (__Secure- prefix en prod)
 
 ### Phase 5 — Scale
 - i18n (anglais)

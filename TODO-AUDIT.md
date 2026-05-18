@@ -29,43 +29,28 @@ Audit du 2026-05-18. Chaque item classe par severite.
 
 ---
 
-## HAUTE (a faire avant production)
+## HAUTE (resolues le 2026-05-18)
 
-### 5. Account lockout en memoire seulement
-- **Fichier:** `apps/api/src/lib/account-lockout.ts:4`
-- **Probleme:** `Map<string, ...>` en memoire. Restart serveur = lockouts perdus. Multi-instance = pas de partage.
-- **Fix:** Utiliser Redis (Upstash deja configure pour rate-limit) pour persister les lockouts.
+### 5. ~~Account lockout en memoire seulement~~ RESOLU
+- **Fix applique:** Dual-store Redis (Upstash) + in-memory fallback, meme pattern que rate-limit.ts. Auto-detection via env vars.
 
-### 6. Pas d'audit log sur creation/update de recette
-- **Fichier:** `apps/api/src/routes/admin/recipes.ts:72,175`
-- **Probleme:** `logAudit` est appele sur delete (ligne 312) mais pas sur create ni update.
-- **Fix:** Ajouter `logAudit({ action: "recipe.create" })` et `logAudit({ action: "recipe.update" })`.
+### 6. ~~Pas d'audit log sur creation/update de recette~~ RESOLU
+- **Fix applique:** `logAudit({ action: "recipe.create" })` et `logAudit({ action: "recipe.update" })` ajoutes dans admin/recipes.ts.
 
-### 7. Delete recette = hard delete, pas de soft delete
-- **Fichier:** `apps/api/src/routes/admin/recipes.ts:303-310`
-- **Probleme:** Suppression definitive, pas de recovery possible. Audit log cree APRES le delete (si la table existe).
-- **Fix:** Ajouter champ `deletedAt` au schema recipes, utiliser soft delete.
+### 7. ~~Delete recette = hard delete~~ RESOLU
+- **Fix applique:** Colonne `deletedAt` ajoutee au schema recipes. DELETE = soft delete (`set deletedAt`). Toutes les queries (public, admin, favoris) filtrent `isNull(deletedAt)`.
 
-### 8. Validation AVIF faible dans upload
-- **Fichier:** `apps/api/src/routes/admin/upload.ts:18,25-28`
-- **Probleme:** Magic bytes AVIF = `[0x00, 0x00, 0x00]` — trop generique. Le check `ftyp` est mieux mais les 3 premiers bytes matchent beaucoup de formats.
-- **Fix:** Verifier `ftyp` + `avif` ou `avis` dans les bytes 8-11 pour validation plus stricte.
+### 8. ~~Validation AVIF faible dans upload~~ RESOLU
+- **Fix applique:** Verification `ftyp` (bytes 4-8) + major brand `avif`/`avis`/`mif1` (bytes 8-12). Magic bytes generiques retires.
 
-### 9. Pas de CSRF token explicite
-- **Fichier:** Toutes les routes API
-- **Probleme:** Depend entierement de SameSite cookie (Better Auth). Pas de double-submit cookie ou token CSRF.
-- **Impact:** Si SameSite est `None` (par erreur ou cross-domain), vulnérable CSRF.
-- **Fix:** Verifier que Better Auth force SameSite=Lax. Documenter pourquoi pas de CSRF token.
+### 9. ~~Pas de CSRF token explicite~~ VERIFIE
+- **Resultat:** Better Auth force SameSite=Lax par defaut + useSecureCookies en prod. CORS avec origins explicites + `credentials: true`. Protection CSRF suffisante sans token explicite.
 
-### 10. Session 7 jours sans re-authentification
-- **Fichier:** `apps/api/src/lib/auth.ts:86`
-- **Probleme:** `expiresIn: 60 * 60 * 24 * 7` — session valide 7 jours. Long pour operations sensibles.
-- **Fix:** Reduire a 3 jours. Ou demander re-auth pour actions admin critiques.
+### 10. ~~Session 7 jours~~ RESOLU
+- **Fix applique:** `expiresIn` reduit de 7 jours a 3 jours dans auth.ts.
 
-### 11. Proxy admin ne forward que le cookie non-secure
-- **Fichier:** `apps/web/proxy.ts:18`
-- **Probleme:** Forward `better-auth.session_token` meme si le cookie original est `__Secure-`. Pourrait bypasser la validation secure cookie.
-- **Fix:** Forward le bon nom de cookie selon l'env (prod = `__Secure-`).
+### 11. ~~Proxy cookie forwarding~~ RESOLU
+- **Fix applique:** Forward le bon nom de cookie (`__Secure-` prefix quand present) dans proxy.ts.
 
 ---
 
@@ -166,20 +151,20 @@ Audit du 2026-05-18. Chaque item classe par severite.
 
 ## Plan d'action suggere
 
-### Semaine 1 — Critiques
-- [ ] Generer migration pour tables `two_factor`, `audit_logs`, colonne `two_factor_enabled`
-- [ ] Retirer `unsafe-eval` du CSP
-- [ ] Securiser seed-admin (no defaults, no password log)
-- [ ] Remplacer localhost par env var dans CSP production
+### Semaine 1 — Critiques (FAIT)
+- [x] Generer migration pour tables `two_factor`, `audit_logs`, colonne `two_factor_enabled`
+- [x] Retirer `unsafe-eval` du CSP
+- [x] Securiser seed-admin (no defaults, no password log)
+- [x] Remplacer localhost par env var dans CSP production
 
-### Semaine 2 — Hautes
-- [ ] Account lockout via Redis
-- [ ] Ajouter audit logs sur create/update recipes
-- [ ] Implementer soft delete recipes
-- [ ] Renforcer validation AVIF upload
-- [ ] Verifier/documenter protection CSRF
-- [ ] Reduire session duration
-- [ ] Fix proxy cookie forwarding
+### Semaine 2 — Hautes (FAIT)
+- [x] Account lockout via Redis (dual-store Upstash + in-memory)
+- [x] Ajouter audit logs sur create/update recipes
+- [x] Implementer soft delete recipes (colonne `deletedAt` + filtre toutes queries)
+- [x] Renforcer validation AVIF upload (ftyp + major brand)
+- [x] Verifier/documenter protection CSRF (SameSite=Lax confirme)
+- [x] Reduire session duration (7j → 3j)
+- [x] Fix proxy cookie forwarding (__Secure- prefix)
 
 ### Semaine 3 — Moyennes
 - [ ] Body size limit middleware

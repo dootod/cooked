@@ -83,7 +83,7 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 5 * 60,
     },
-    expiresIn: 60 * 60 * 24 * 7,
+    expiresIn: 60 * 60 * 24 * 3,
     updateAge: 60 * 60 * 24,
   },
   advanced: {

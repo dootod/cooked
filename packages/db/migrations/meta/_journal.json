@@ -15,6 +15,13 @@
       "when": 1779101808846,
       "tag": "0001_funny_mesmero",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779102673458,
+      "tag": "0002_outstanding_quasimodo",
+      "breakpoints": true
     }
   ]
 }

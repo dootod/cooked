@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db, recipes, ingredients, steps, macros, medias, recipesCategories, recipesTags } from "@cooked/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { generateSlug } from "../../lib/utils.js";
@@ -22,6 +22,7 @@ app.get("/", async (c) => {
   const rows = await db
     .select()
     .from(recipes)
+    .where(isNull(recipes.deletedAt))
     .orderBy(desc(recipes.createdAt))
     .limit(200);
   return c.json({ recipes: rows });
@@ -33,7 +34,7 @@ app.get("/:id", async (c) => {
   const [recipe] = await db
     .select()
     .from(recipes)
-    .where(eq(recipes.id, id))
+    .where(and(eq(recipes.id, id), isNull(recipes.deletedAt)))
     .limit(1);
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
@@ -76,6 +77,7 @@ app.post("/", async (c) => {
     return c.json({ error: "Validation error", details: result.error.issues }, 400);
   }
   const body = result.data;
+  const currentUser = c.get("user");
 
   const slug = body.slug || generateSlug(body.title);
 
@@ -169,11 +171,19 @@ app.post("/", async (c) => {
     return created;
   });
 
+  await logAudit({
+    userId: currentUser.id,
+    action: "recipe.create",
+    targetId: recipe.id,
+    targetType: "recipe",
+  });
+
   return c.json({ recipe }, 201);
 });
 
 app.put("/:id", async (c) => {
   const id = c.req.param("id");
+  const currentUser = c.get("user");
   const raw = await c.req.json();
   const result = updateRecipeSchema.safeParse(raw);
   if (!result.success) {
@@ -207,7 +217,7 @@ app.put("/:id", async (c) => {
         ...(body.videoUrl !== undefined && { videoUrl: body.videoUrl }),
         updatedAt: new Date(),
       })
-      .where(eq(recipes.id, id))
+      .where(and(eq(recipes.id, id), isNull(recipes.deletedAt)))
       .returning();
 
     if (!updated) return null;
@@ -297,6 +307,13 @@ app.put("/:id", async (c) => {
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
 
+  await logAudit({
+    userId: currentUser.id,
+    action: "recipe.update",
+    targetId: id,
+    targetType: "recipe",
+  });
+
   return c.json({ recipe });
 });
 
@@ -304,8 +321,9 @@ app.delete("/:id", async (c) => {
   const id = c.req.param("id");
   const currentUser = c.get("user");
   const [deleted] = await db
-    .delete(recipes)
-    .where(eq(recipes.id, id))
+    .update(recipes)
+    .set({ deletedAt: new Date() })
+    .where(and(eq(recipes.id, id), isNull(recipes.deletedAt)))
     .returning({ id: recipes.id });
   if (!deleted) return c.json({ error: "Not found" }, 404);
 

@@ -15,17 +15,20 @@ const MAGIC_BYTES: Record<string, number[]> = {
   jpeg: [0xff, 0xd8, 0xff],
   png: [0x89, 0x50, 0x4e, 0x47],
   webp: [0x52, 0x49, 0x46, 0x46],
-  avif: [0x00, 0x00, 0x00],
 };
 
+const AVIF_BRANDS = new Set(["avif", "avis", "mif1"]);
+
 function validateMagicBytes(buffer: Buffer, ext: string): boolean {
+  if (ext === "avif") {
+    if (buffer.length < 12) return false;
+    const ftyp = buffer.subarray(4, 8).toString("ascii");
+    const brand = buffer.subarray(8, 12).toString("ascii");
+    return ftyp === "ftyp" && AVIF_BRANDS.has(brand);
+  }
   const expected = MAGIC_BYTES[ext];
   if (!expected) return false;
   if (buffer.length < expected.length) return false;
-  if (ext === "avif") {
-    const ftypSlice = buffer.subarray(4, 8).toString("ascii");
-    return ftypSlice === "ftyp";
-  }
   return expected.every((byte, i) => buffer[i] === byte);
 }
 

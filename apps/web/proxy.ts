@@ -6,16 +6,20 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin")) {
-    const token =
-      request.cookies.get("__Secure-better-auth.session_token") ??
-      request.cookies.get("better-auth.session_token");
+    const secureCookie = request.cookies.get("__Secure-better-auth.session_token");
+    const regularCookie = request.cookies.get("better-auth.session_token");
+    const token = secureCookie ?? regularCookie;
     if (!token) {
       return NextResponse.redirect(new URL("/compte/connexion", request.url));
     }
 
+    const cookieName = secureCookie
+      ? "__Secure-better-auth.session_token"
+      : "better-auth.session_token";
+
     try {
       const res = await fetch(`${API_URL}/api/auth/get-session`, {
-        headers: { cookie: `better-auth.session_token=${token.value}` },
+        headers: { cookie: `${cookieName}=${token.value}` },
       });
       if (!res.ok) {
         return NextResponse.redirect(

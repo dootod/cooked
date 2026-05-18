@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db, favorites, recipes, user } from "@cooked/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth.js";
 import { emailVerifiedMiddleware } from "../middleware/email-verified.js";
@@ -55,7 +55,7 @@ app.get("/favorites", async (c) => {
     })
     .from(favorites)
     .innerJoin(recipes, eq(favorites.recipeId, recipes.id))
-    .where(eq(favorites.userId, u.id));
+    .where(and(eq(favorites.userId, u.id), isNull(recipes.deletedAt)));
 
   return c.json({ favorites: rows });
 });
@@ -67,7 +67,7 @@ app.post("/favorites/:id", emailVerifiedMiddleware, async (c) => {
   const [recipe] = await db
     .select({ id: recipes.id })
     .from(recipes)
-    .where(eq(recipes.id, recipeId))
+    .where(and(eq(recipes.id, recipeId), isNull(recipes.deletedAt)))
     .limit(1);
   if (!recipe) return c.json({ error: "Recette introuvable" }, 404);
 

@@ -13,7 +13,7 @@ import {
   recipesEquipment,
   equipment,
 } from "@cooked/db";
-import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
 import { paginationSchema } from "../lib/validation.js";
 
 const VALID_DIFFICULTIES = ["easy", "intermediate", "hard"] as const;
@@ -32,7 +32,7 @@ app.get("/", async (c) => {
   const difficulty = c.req.query("difficulty");
   const sort = c.req.query("sort") ?? "recent";
 
-  const conditions = [eq(recipes.status, "published")];
+  const conditions = [eq(recipes.status, "published"), isNull(recipes.deletedAt)];
 
   if (search) {
     const sanitized = search.replace(/[%_\\]/g, "\\$&");
@@ -156,7 +156,7 @@ app.get("/:slug", async (c) => {
   const [recipe] = await db
     .select()
     .from(recipes)
-    .where(and(eq(recipes.slug, slug), eq(recipes.status, "published")))
+    .where(and(eq(recipes.slug, slug), eq(recipes.status, "published"), isNull(recipes.deletedAt)))
     .limit(1);
 
   if (!recipe) return c.json({ error: "Not found" }, 404);

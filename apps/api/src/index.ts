@@ -77,7 +77,7 @@ app.post("/api/auth/sign-in/email", async (c) => {
 
   const email = body.email ?? "";
   if (email) {
-    const lockout = isLockedOut(email);
+    const lockout = await isLockedOut(email);
     if (lockout.locked) {
       return c.json(
         { error: "Compte temporairement verrouille. Reessayez dans " + lockout.retryAfterSeconds + " secondes." },
@@ -89,9 +89,9 @@ app.post("/api/auth/sign-in/email", async (c) => {
   const response = await auth.handler(c.req.raw);
 
   if (!response.ok && email) {
-    recordFailedLogin(email);
+    await recordFailedLogin(email);
   } else if (response.ok && email) {
-    clearFailedLogins(email);
+    await clearFailedLogins(email);
   }
 
   return response;
