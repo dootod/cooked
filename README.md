@@ -59,7 +59,7 @@ cooked/
 - [ ] Phase 2 — Notation, commentaires membres (frontend)
 - [ ] Phase 2 — Recherche full-text + filtres avances
 - [ ] Phase 3 — Liste de courses PDF, analytics backoffice
-- [x] Phase 4 — Securite avancee (Redis rate limit + account lockout dual-store, audit logs complets, soft delete recipes, AVIF validation, session 3j, proxy cookie fix, CSRF SameSite, HSTS, MFA TOTP, body size limit, URL whitelists video/media, email masking logs, metadata jsonb, indexes DB, pagination admin recipes)
+- [x] Phase 4 — Securite avancee (audit complet 25/25 : rate limit Redis, account lockout, audit logs, soft delete, AVIF validation, session 3j, proxy cookie, CSRF, HSTS, MFA TOTP, body size limit, URL whitelists, email masking, jsonb metadata, indexes DB, pagination admin, Zod error formatting, transaction typing, X-XSS-Protection)
 - [ ] Phase 5 — i18n, API publique documentee, app mobile
 
 ## Documentation

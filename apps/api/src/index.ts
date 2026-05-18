@@ -20,6 +20,10 @@ import meRoutes from "./routes/me.js";
 import recipesRoutes from "./routes/recipes.js";
 import tagsRoutes from "./routes/tags.js";
 
+function formatZodErrors(issues: z.ZodIssue[]): string[] {
+  return issues.map((i) => `${i.path.join(".")}: ${i.message}`);
+}
+
 const app = new Hono();
 
 app.use("*", logger());
@@ -61,7 +65,7 @@ app.onError((err, c) => {
     return c.json({ error: "Corps de requete invalide" }, 400);
   }
   if (err instanceof z.ZodError) {
-    return c.json({ error: "Validation error", details: err.issues }, 400);
+    return c.json({ error: "Validation error", details: formatZodErrors(err.issues) }, 400);
   }
   console.error("[API Error]", err);
   return c.json({ error: "Erreur interne" }, 500);

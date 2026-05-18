@@ -518,6 +518,11 @@ Architecture hybride : frontend/admin sur Vercel + API sur VPS ou Oracle Free Ti
 - [x] Audit metadata jsonb : colonne text → jsonb, queries natives PostgreSQL
 - [x] Index DB : idx_user_role (user.role), idx_recipes_status (recipes.status)
 - [x] Pagination admin recipes : adminPaginationSchema (page + limit max 200, total + totalPages)
+- [x] Admin middleware : null-check explicite (!user || user.role !== "admin")
+- [x] LIKE search escaping : verifie correct (wildcards % et _ echappes manuellement, necessaire malgre parametrisation Drizzle)
+- [x] Zod error formatting : formatZodErrors() — "path: message" lisible, plus de raw issues en reponse
+- [x] Transaction typing : DbTransaction derive du type db.transaction, plus de double cast unsafe
+- [x] X-XSS-Protection : harmonise a "0" partout (API + Next.js), recommandation OWASP
 
 ### Phase 5 — Scale
 - i18n (anglais)

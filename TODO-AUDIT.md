@@ -85,32 +85,22 @@ Audit du 2026-05-18. Chaque item classe par severite.
 
 ---
 
-## BASSE (a faire quand possible)
+## BASSE (resolues le 2026-05-18)
 
-### 21. Admin middleware null-check implicite
-- **Fichier:** `apps/api/src/middleware/admin.ts:6`
-- **Probleme:** `user?.role` — optional chaining suggere user pourrait etre null. Devrait etre explicite.
-- **Fix:** `if (!user || user.role !== "admin")` pour clarte.
+### 21. ~~Admin middleware null-check implicite~~ RESOLU
+- **Fix applique:** `if (!user || user.role !== "admin")` — null-check explicite avant comparaison role.
 
-### 22. Double-escaping inutile dans search
-- **Fichier:** `apps/api/src/routes/recipes.ts:38`
-- **Probleme:** Sanitize manuellement `%_\` pour LIKE mais Drizzle parametrise deja. Pas dangereux, juste redondant.
-- **Fix:** Garder ou retirer — pas de risque reel. Drizzle `ilike` est safe.
+### 22. ~~Double-escaping inutile dans search~~ VERIFIE
+- **Resultat:** L'escaping LIKE (`%_\`) est en fait necessaire. Drizzle parametrise contre injection SQL, mais `%` et `_` restent des wildcards LIKE dans la valeur parametree. L'escaping manuel est correct.
 
-### 23. Zod error details expose en reponse API
-- **Fichier:** `apps/api/src/index.ts:53`, `apps/api/src/routes/admin/recipes.ts:76`
-- **Probleme:** `details: err.issues` renvoie structure interne Zod. Pas critique mais info leakage minor.
-- **Fix:** Formatter les erreurs en messages lisibles, pas raw Zod issues.
+### 23. ~~Zod error details expose en reponse API~~ RESOLU
+- **Fix applique:** `formatZodErrors()` dans index.ts. Erreurs formatees en `"path: message"` lisibles au lieu de raw Zod issues. Meme formatage dans admin/recipes.ts.
 
-### 24. Transaction cast unsafe
-- **Fichier:** `apps/api/src/routes/admin/recipes.ts:15`
-- **Probleme:** `tx as unknown as typeof db` — double cast dangereux. Marche mais pourrait casser.
-- **Fix:** Utiliser le type transaction de Drizzle directement.
+### 24. ~~Transaction cast unsafe~~ RESOLU
+- **Fix applique:** Type `DbTransaction` derive de `Parameters<Parameters<typeof db.transaction>[0]>[0]>`. Plus de double cast `as unknown as typeof db`.
 
-### 25. X-XSS-Protection header inconsistant
-- **Fichier:** `apps/api/src/index.ts:30` vs `apps/web/next.config.ts:24`
-- **Probleme:** API met `X-XSS-Protection: 0`, Next met `1; mode=block`. Header deprece de toute facon.
-- **Fix:** Mettre `0` partout (recommandation OWASP actuelle) ou retirer completement.
+### 25. ~~X-XSS-Protection header inconsistant~~ RESOLU
+- **Fix applique:** `X-XSS-Protection: 0` partout (API + Next.js). Conforme recommandation OWASP — header deprece, `0` desactive le filtre XSS bugge des anciens navigateurs.
 
 ---
 
@@ -158,9 +148,9 @@ Audit du 2026-05-18. Chaque item classe par severite.
 - [x] Pagination admin recipes (adminPaginationSchema)
 - [x] Plan CDN pour uploads (differe → migration R2)
 
-### Plus tard — Basses
-- [ ] Admin middleware null-check explicite
-- [ ] Nettoyer double-escaping search
-- [ ] Formatter Zod errors en reponse
-- [ ] Fix transaction typing
-- [ ] Harmoniser X-XSS-Protection
+### Plus tard — Basses (FAIT)
+- [x] Admin middleware null-check explicite
+- [x] Verifier double-escaping search (correct — necessaire pour LIKE wildcards)
+- [x] Formatter Zod errors en reponse
+- [x] Fix transaction typing (DbTransaction derive du type db.transaction)
+- [x] Harmoniser X-XSS-Protection (0 partout, OWASP)

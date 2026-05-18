@@ -12,8 +12,10 @@ import {
 import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
-async function withTransaction<T>(fn: (tx: typeof db) => Promise<T>): Promise<T> {
-  return db.transaction(async (tx) => fn(tx as unknown as typeof db));
+type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+async function withTransaction<T>(fn: (tx: DbTransaction) => Promise<T>): Promise<T> {
+  return db.transaction(async (tx) => fn(tx));
 }
 
 const app = new Hono<AppEnv>();
@@ -89,7 +91,7 @@ app.post("/", async (c) => {
   const raw = await c.req.json();
   const result = createRecipeSchema.safeParse(raw);
   if (!result.success) {
-    return c.json({ error: "Validation error", details: result.error.issues }, 400);
+    return c.json({ error: "Validation error", details: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, 400);
   }
   const body = result.data;
   const currentUser = c.get("user");
@@ -202,7 +204,7 @@ app.put("/:id", async (c) => {
   const raw = await c.req.json();
   const result = updateRecipeSchema.safeParse(raw);
   if (!result.success) {
-    return c.json({ error: "Validation error", details: result.error.issues }, 400);
+    return c.json({ error: "Validation error", details: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, 400);
   }
   const body = result.data;
 
