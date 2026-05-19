@@ -135,7 +135,7 @@ app.post("/", async (c) => {
     const rows = await db
       .select({ id: recipes.id })
       .from(recipes)
-      .where(eq(recipes.slug, s))
+      .where(and(eq(recipes.slug, s), isNull(recipes.deletedAt)))
       .limit(1);
     return rows.length > 0;
   });
@@ -384,7 +384,7 @@ app.delete("/:id", async (c) => {
   const currentUser = c.get("user");
   const [deleted] = await db
     .update(recipes)
-    .set({ deletedAt: new Date() })
+    .set({ deletedAt: new Date(), slug: `_deleted_${id}` })
     .where(and(eq(recipes.id, id), isNull(recipes.deletedAt)))
     .returning({ id: recipes.id });
   if (!deleted) return c.json({ error: "Not found" }, 404);
