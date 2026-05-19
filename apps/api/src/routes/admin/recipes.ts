@@ -1,9 +1,18 @@
 import { Hono } from "hono";
-import { db, recipes, ingredients, steps, macros, medias, recipesCategories, recipesTags } from "@cooked/db";
+import {
+  db,
+  recipes,
+  ingredients,
+  steps,
+  macros,
+  medias,
+  recipesCategories,
+  recipesTags,
+} from "@cooked/db";
 import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
-import { generateSlug } from "../../lib/utils.js";
+import { generateSlug, uniqueSlug } from "../../lib/utils.js";
 import {
   adminPaginationSchema,
   createRecipeSchema,
@@ -14,7 +23,9 @@ import type { AppEnv } from "../../lib/types.js";
 
 type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-async function withTransaction<T>(fn: (tx: DbTransaction) => Promise<T>): Promise<T> {
+async function withTransaction<T>(
+  fn: (tx: DbTransaction) => Promise<T>,
+): Promise<T> {
   return db.transaction(async (tx) => fn(tx));
 }
 
@@ -25,7 +36,10 @@ app.get("/", async (c) => {
   const query = adminPaginationSchema.parse(c.req.query());
   const offset = (query.page - 1) * query.limit;
 
-  const [totalResult] = await db.select({ count: count() }).from(recipes).where(isNull(recipes.deletedAt));
+  const [totalResult] = await db
+    .select({ count: count() })
+    .from(recipes)
+    .where(isNull(recipes.deletedAt));
   const rows = await db
     .select()
     .from(recipes)
@@ -56,23 +70,35 @@ app.get("/:id", async (c) => {
 
   if (!recipe) return c.json({ error: "Not found" }, 404);
 
-  const [recipeIngredients, recipeSteps, recipeMacro, recipeMedias, recipeCategories, recipeTags] =
-    await Promise.all([
-      db
-        .select()
-        .from(ingredients)
-        .where(eq(ingredients.recipeId, recipe.id))
-        .orderBy(ingredients.order),
-      db
-        .select()
-        .from(steps)
-        .where(eq(steps.recipeId, recipe.id))
-        .orderBy(steps.order),
-      db.select().from(macros).where(eq(macros.recipeId, recipe.id)).limit(1),
-      db.select().from(medias).where(eq(medias.recipeId, recipe.id)),
-      db.select({ categoryId: recipesCategories.categoryId }).from(recipesCategories).where(eq(recipesCategories.recipeId, recipe.id)),
-      db.select({ tagId: recipesTags.tagId }).from(recipesTags).where(eq(recipesTags.recipeId, recipe.id)),
-    ]);
+  const [
+    recipeIngredients,
+    recipeSteps,
+    recipeMacro,
+    recipeMedias,
+    recipeCategories,
+    recipeTags,
+  ] = await Promise.all([
+    db
+      .select()
+      .from(ingredients)
+      .where(eq(ingredients.recipeId, recipe.id))
+      .orderBy(ingredients.order),
+    db
+      .select()
+      .from(steps)
+      .where(eq(steps.recipeId, recipe.id))
+      .orderBy(steps.order),
+    db.select().from(macros).where(eq(macros.recipeId, recipe.id)).limit(1),
+    db.select().from(medias).where(eq(medias.recipeId, recipe.id)),
+    db
+      .select({ categoryId: recipesCategories.categoryId })
+      .from(recipesCategories)
+      .where(eq(recipesCategories.recipeId, recipe.id)),
+    db
+      .select({ tagId: recipesTags.tagId })
+      .from(recipesTags)
+      .where(eq(recipesTags.recipeId, recipe.id)),
+  ]);
 
   return c.json({
     recipe: {
@@ -91,21 +117,28 @@ app.post("/", async (c) => {
   const raw = await c.req.json();
   const result = createRecipeSchema.safeParse(raw);
   if (!result.success) {
-    return c.json({ error: "Validation error", details: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, 400);
+    return c.json(
+      {
+        error: "Validation error",
+        details: result.error.issues.map(
+          (i) => `${i.path.join(".")}: ${i.message}`,
+        ),
+      },
+      400,
+    );
   }
   const body = result.data;
   const currentUser = c.get("user");
 
-  const slug = body.slug || generateSlug(body.title);
-
-  const existing = await db
-    .select({ id: recipes.id })
-    .from(recipes)
-    .where(eq(recipes.slug, slug))
-    .limit(1);
-  if (existing.length > 0) {
-    return c.json({ error: "Slug deja utilise" }, 409);
-  }
+  const baseSlug = body.slug || generateSlug(body.title);
+  const slug = await uniqueSlug(baseSlug, async (s) => {
+    const rows = await db
+      .select({ id: recipes.id })
+      .from(recipes)
+      .where(eq(recipes.slug, s))
+      .limit(1);
+    return rows.length > 0;
+  });
 
   const recipe = await withTransaction(async (tx) => {
     const [created] = await tx
@@ -204,7 +237,15 @@ app.put("/:id", async (c) => {
   const raw = await c.req.json();
   const result = updateRecipeSchema.safeParse(raw);
   if (!result.success) {
-    return c.json({ error: "Validation error", details: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) }, 400);
+    return c.json(
+      {
+        error: "Validation error",
+        details: result.error.issues.map(
+          (i) => `${i.path.join(".")}: ${i.message}`,
+        ),
+      },
+      400,
+    );
   }
   const body = result.data;
 
@@ -225,7 +266,9 @@ app.put("/:id", async (c) => {
       .set({
         ...(body.title !== undefined && { title: body.title }),
         ...(body.slug !== undefined && { slug: body.slug }),
-        ...(body.description !== undefined && { description: body.description }),
+        ...(body.description !== undefined && {
+          description: body.description,
+        }),
         ...(body.prepTime !== undefined && { prepTime: body.prepTime }),
         ...(body.cookTime !== undefined && { cookTime: body.cookTime }),
         ...(body.difficulty !== undefined && { difficulty: body.difficulty }),
@@ -282,7 +325,9 @@ app.put("/:id", async (c) => {
     }
 
     if (body.categoryIds !== undefined) {
-      await tx.delete(recipesCategories).where(eq(recipesCategories.recipeId, id));
+      await tx
+        .delete(recipesCategories)
+        .where(eq(recipesCategories.recipeId, id));
       if (body.categoryIds.length) {
         await tx.insert(recipesCategories).values(
           body.categoryIds.map((categoryId) => ({

@@ -35,7 +35,7 @@ export default function Header({
   const [searchQuery, setSearchQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const isDark = pathname === "/" || pathname.startsWith("/recettes/");
+  const isDark = true;
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
