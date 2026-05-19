@@ -28,15 +28,27 @@ export default function ConnexionPage() {
     setLoading(true);
     setError("");
 
-    const { data, error: authError } = await signIn.email({ email, password });
+    try {
+      const { data, error: authError } = await signIn.email({
+        email,
+        password,
+      });
 
-    if (authError) {
-      setError(authError.message || "Email ou mot de passe incorrect.");
-    } else if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
-      setTwoFactorRequired(true);
-    } else if (data?.user) {
-      router.push(data.user.role === "admin" ? "/admin" : "/");
-      router.refresh();
+      if (authError) {
+        setError(authError.message || "Email ou mot de passe incorrect.");
+      } else if (
+        data &&
+        "twoFactorRedirect" in data &&
+        data.twoFactorRedirect
+      ) {
+        setTwoFactorRequired(true);
+      } else if (data?.user) {
+        router.push(data.user.role === "admin" ? "/admin" : "/");
+        router.refresh();
+        return;
+      }
+    } catch {
+      setError("Erreur de connexion. Veuillez reessayer.");
     }
 
     setLoading(false);
@@ -47,16 +59,25 @@ export default function ConnexionPage() {
     setLoading(true);
     setError("");
 
-    const { data, error: verifyError } = await authClient.twoFactor.verifyTotp({ code: totpCode });
+    try {
+      const { data, error: verifyError } =
+        await authClient.twoFactor.verifyTotp({ code: totpCode });
 
-    if (verifyError) {
-      setError(verifyError.message || "Code invalide");
-    } else if (data?.user) {
-      router.push((data.user as Record<string, unknown>).role === "admin" ? "/admin" : "/");
+      if (verifyError) {
+        setError(verifyError.message || "Code invalide");
+        setLoading(false);
+        return;
+      }
+
+      const user = (data as Record<string, unknown>)?.user as
+        | Record<string, unknown>
+        | undefined;
+      router.push(user?.role === "admin" ? "/admin" : "/");
       router.refresh();
+    } catch {
+      setError("Erreur de verification. Veuillez reessayer.");
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
@@ -78,10 +99,14 @@ export default function ConnexionPage() {
         />
 
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
 
         {/* Logo */}
         <div className="relative z-10">
@@ -95,13 +120,15 @@ export default function ConnexionPage() {
         {/* Branding content */}
         <div className="relative z-10 hidden lg:block">
           <h2 className="text-[32px] xl:text-[38px] font-bold text-white leading-tight tracking-tight">
-            Gérez vos recettes<br />
+            Gérez vos recettes
+            <br />
             <span className="bg-gradient-to-r from-primary via-accent to-purple-400 bg-clip-text text-transparent">
               en toute simplicité
             </span>
           </h2>
           <p className="mt-4 text-[15px] text-white/40 leading-relaxed max-w-md">
-            Accédez à votre espace pour gérer, organiser et publier vos recettes culinaires.
+            Accédez à votre espace pour gérer, organiser et publier vos recettes
+            culinaires.
           </p>
         </div>
 
@@ -112,7 +139,9 @@ export default function ConnexionPage() {
               <div
                 key={color}
                 className="w-8 h-8 rounded-full border-2 border-[#0F1629]"
-                style={{ background: `linear-gradient(135deg, ${color}, ${color}80)` }}
+                style={{
+                  background: `linear-gradient(135deg, ${color}, ${color}80)`,
+                }}
               />
             ))}
           </div>
@@ -148,14 +177,27 @@ export default function ConnexionPage() {
           {registered && (
             <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20">
               <div className="flex items-start gap-3">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475B8A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#475B8A"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0 mt-0.5"
+                >
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
                 <div>
-                  <p className="text-[14px] font-semibold text-text">Compte cree avec succes !</p>
+                  <p className="text-[14px] font-semibold text-text">
+                    Compte cree avec succes !
+                  </p>
                   <p className="text-[13px] text-text-secondary mt-1">
-                    Verifiez votre boite mail pour activer votre compte avant de vous connecter.
+                    Verifiez votre boite mail pour activer votre compte avant de
+                    vous connecter.
                   </p>
                 </div>
               </div>
@@ -204,7 +246,17 @@ export default function ConnexionPage() {
 
                 {error && (
                   <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="shrink-0"
+                    >
                       <circle cx="12" cy="12" r="10" />
                       <line x1="15" y1="9" x2="9" y2="15" />
                       <line x1="9" y1="9" x2="15" y2="15" />
@@ -249,13 +301,24 @@ export default function ConnexionPage() {
             <form onSubmit={handleTOTPVerify} className="space-y-5">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="var(--color-primary)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[15px] font-semibold text-text">Verification 2FA</p>
+                  <p className="text-[15px] font-semibold text-text">
+                    Verification 2FA
+                  </p>
                   <p className="text-[12px] text-text-secondary">
                     Entrez le code de votre application d&apos;authentification
                   </p>
@@ -269,7 +332,9 @@ export default function ConnexionPage() {
                 <input
                   type="text"
                   value={totpCode}
-                  onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onChange={(e) =>
+                    setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
                   placeholder="000000"
                   maxLength={6}
                   autoFocus
@@ -279,7 +344,17 @@ export default function ConnexionPage() {
 
               {error && (
                 <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="shrink-0"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <line x1="15" y1="9" x2="9" y2="15" />
                     <line x1="9" y1="9" x2="15" y2="15" />
@@ -305,7 +380,11 @@ export default function ConnexionPage() {
 
               <button
                 type="button"
-                onClick={() => { setTwoFactorRequired(false); setTotpCode(""); setError(""); }}
+                onClick={() => {
+                  setTwoFactorRequired(false);
+                  setTotpCode("");
+                  setError("");
+                }}
                 className="w-full py-2.5 text-[13px] font-medium text-text-secondary hover:text-text transition-colors cursor-pointer"
               >
                 Retour a la connexion

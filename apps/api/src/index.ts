@@ -6,7 +6,11 @@ import { logger } from "hono/logger";
 import { z } from "zod";
 
 import { auth } from "./lib/auth.js";
-import { isLockedOut, recordFailedLogin, clearFailedLogins } from "./lib/account-lockout.js";
+import {
+  isLockedOut,
+  recordFailedLogin,
+  clearFailedLogins,
+} from "./lib/account-lockout.js";
 import { rateLimit, userRateLimit } from "./middleware/rate-limit.js";
 import adminCategoriesRoutes from "./routes/admin/categories.js";
 import adminCommentsRoutes from "./routes/admin/comments.js";
@@ -35,7 +39,10 @@ app.use("*", async (c, next) => {
   c.header("X-XSS-Protection", "0");
   c.header("Referrer-Policy", "strict-origin-when-cross-origin");
   if (process.env.NODE_ENV === "production") {
-    c.header("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+    c.header(
+      "Strict-Transport-Security",
+      "max-age=63072000; includeSubDomains",
+    );
   }
 });
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
@@ -64,7 +71,9 @@ app.use("*", async (c, next) => {
 app.use("*", async (c, next) => {
   const cl = c.req.header("content-length");
   if (cl) {
-    const limit = c.req.path.startsWith("/api/admin/upload") ? 6 * 1024 * 1024 : 1024 * 1024;
+    const limit = c.req.path.startsWith("/api/admin/upload")
+      ? 6 * 1024 * 1024
+      : 1024 * 1024;
     if (parseInt(cl, 10) > limit) {
       return c.json({ error: "Payload trop volumineux" }, 413);
     }
@@ -77,7 +86,10 @@ app.onError((err, c) => {
     return c.json({ error: "Corps de requete invalide" }, 400);
   }
   if (err instanceof z.ZodError) {
-    return c.json({ error: "Validation error", details: formatZodErrors(err.issues) }, 400);
+    return c.json(
+      { error: "Validation error", details: formatZodErrors(err.issues) },
+      400,
+    );
   }
   console.error("[API Error]", err);
   return c.json({ error: "Erreur interne" }, 500);
@@ -92,7 +104,13 @@ app.use("/uploads/*", async (c, next) => {
 });
 app.use("/uploads/*", serveStatic({ root: "./" }));
 
-app.use("/api/auth/*", rateLimit({ windowMs: 60_000, max: 10 }));
+const authReadLimit = rateLimit({ windowMs: 60_000, max: 120 });
+const authWriteLimit = rateLimit({ windowMs: 60_000, max: 10 });
+app.use("/api/auth/*", (c, next) =>
+  c.req.method === "GET" || c.req.method === "HEAD"
+    ? authReadLimit(c, next)
+    : authWriteLimit(c, next),
+);
 app.post("/api/auth/sign-in/email", async (c) => {
   const cloned = c.req.raw.clone();
   let body: { email?: string } = {};
@@ -107,7 +125,12 @@ app.post("/api/auth/sign-in/email", async (c) => {
     const lockout = await isLockedOut(email);
     if (lockout.locked) {
       return c.json(
-        { error: "Compte temporairement verrouille. Reessayez dans " + lockout.retryAfterSeconds + " secondes." },
+        {
+          error:
+            "Compte temporairement verrouille. Reessayez dans " +
+            lockout.retryAfterSeconds +
+            " secondes.",
+        },
         429,
       );
     }
