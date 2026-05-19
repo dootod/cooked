@@ -74,7 +74,10 @@
       "PowerShell(git push *)",
       "Bash(pnpm --filter @cooked/db exec drizzle-kit studio)",
       "Bash(pnpm db:migrate *)",
-      "Bash(taskkill *)"
+      "Bash(taskkill *)",
+      "Bash(cd C:laragonwwwcooked *)",
+      "Bash(python -c \"import sys; html=sys.stdin.read\\(\\); print\\('not-found' if 'not-found' in html.lower\\(\\) or '404' in html or 'introuvable' in html.lower\\(\\) or 'notFound' in html else 'NO 404 detected'\\); print\\(f'length={len\\(html\\)}'\\)\")",
+      "Bash(npx drizzle-kit *)"
     ]
   }
 }
