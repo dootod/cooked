@@ -43,6 +43,13 @@
       "when": 1779126996258,
       "tag": "0005_rapid_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779214569678,
+      "tag": "0006_sudden_queen_noir",
+      "breakpoints": true
     }
   ]
 }
