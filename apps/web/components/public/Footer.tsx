@@ -73,16 +73,6 @@ export default function Footer() {
                     Toutes les recettes
                   </Link>
                 </li>
-                {categories.length > 0 && categories.slice(0, 2).map((cat) => (
-                  <li key={cat.id}>
-                    <Link
-                      href={`/categories/${cat.slug}`}
-                      className={`text-sm transition-colors ${isDark ? "text-white/30 hover:text-white/60" : "text-text-secondary hover:text-primary"}`}
-                    >
-                      {cat.name}
-                    </Link>
-                  </li>
-                ))}
               </ul>
             </div>
 
