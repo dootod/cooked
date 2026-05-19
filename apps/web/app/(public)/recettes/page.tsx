@@ -1,7 +1,11 @@
 import Link from "next/link";
 import RecipeCard from "@/components/public/RecipeCard";
 import RecipeFilters from "@/components/public/RecipeFilters";
-import { AnimatedSection, AnimatedCard } from "@/components/public/AnimatedSection";
+import {
+  AnimatedSection,
+  AnimatedCard,
+} from "@/components/public/AnimatedSection";
+import { difficultyLabel } from "@/lib/recipe-utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -27,12 +31,6 @@ type Category = {
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-const difficultyLabels: Record<string, string> = {
-  easy: "Facile",
-  intermediate: "Moyen",
-  hard: "Difficile",
-};
 
 async function getRecipes(params: URLSearchParams): Promise<{
   recipes: RecipeListItem[];
@@ -110,11 +108,15 @@ export default async function RecettesPage({
           />
           <div
             className="absolute bottom-[5%] right-[12%] w-[400px] h-[400px] bg-accent/[0.06] rounded-full blur-[150px]"
-            style={{ animation: "public-glow-pulse 10s ease-in-out infinite 3s" }}
+            style={{
+              animation: "public-glow-pulse 10s ease-in-out infinite 3s",
+            }}
           />
           <div
             className="absolute top-[35%] right-[20%] w-[300px] h-[300px] bg-[#a78bfa]/[0.05] rounded-full blur-[120px]"
-            style={{ animation: "public-glow-pulse 12s ease-in-out infinite 1s" }}
+            style={{
+              animation: "public-glow-pulse 12s ease-in-out infinite 1s",
+            }}
           />
           <div className="absolute inset-0 public-dot-grid opacity-20" />
           <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
@@ -128,7 +130,15 @@ export default async function RecettesPage({
             <Link href="/" className="hover:text-white/50 transition-colors">
               Accueil
             </Link>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
               <path d="m9 18 6-6-6-6" />
             </svg>
             <span className="text-white/40">Recettes</span>
@@ -139,7 +149,9 @@ export default async function RecettesPage({
               {search ? (
                 <>
                   Resultats pour{" "}
-                  <span className="public-gradient-text">&ldquo;{search}&rdquo;</span>
+                  <span className="public-gradient-text">
+                    &ldquo;{search}&rdquo;
+                  </span>
                 </>
               ) : category ? (
                 <>
@@ -172,7 +184,15 @@ export default async function RecettesPage({
               <>
                 {search && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/[0.06] border border-white/[0.08] text-[11px] text-white/50">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <svg
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    >
                       <circle cx="11" cy="11" r="8" />
                       <path d="m21 21-4.3-4.3" />
                     </svg>
@@ -186,7 +206,7 @@ export default async function RecettesPage({
                 )}
                 {difficulty && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-accent/20 border border-accent/25 text-[11px] font-medium text-white/60">
-                    {difficultyLabels[difficulty] ?? difficulty}
+                    {difficultyLabel[difficulty] ?? difficulty}
                   </span>
                 )}
                 <Link
@@ -226,7 +246,10 @@ export default async function RecettesPage({
             {/* Featured recipe */}
             {showFeatured && (
               <div className="mb-10">
-                <AnimatedSection animation="fade-left" className="flex items-center gap-3 mb-4">
+                <AnimatedSection
+                  animation="fade-left"
+                  className="flex items-center gap-3 mb-4"
+                >
                   <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-tertiary">
                     Mise en avant
                   </p>
@@ -241,7 +264,9 @@ export default async function RecettesPage({
             {/* Grid header */}
             <div className="flex items-center gap-3 mb-6">
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-tertiary">
-                {showFeatured ? `${gridRecipes.length} autre${gridRecipes.length !== 1 ? "s" : ""} recette${gridRecipes.length !== 1 ? "s" : ""}` : `${total} recette${total !== 1 ? "s" : ""}`}
+                {showFeatured
+                  ? `${gridRecipes.length} autre${gridRecipes.length !== 1 ? "s" : ""} recette${gridRecipes.length !== 1 ? "s" : ""}`
+                  : `${total} recette${total !== 1 ? "s" : ""}`}
               </p>
               <div className="flex-1 h-px bg-gradient-to-r from-border/30 to-transparent" />
             </div>
@@ -279,13 +304,22 @@ export default async function RecettesPage({
                 Aucune recette trouvee
               </h3>
               <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-                Modifiez vos filtres ou votre recherche pour decouvrir des recettes.
+                Modifiez vos filtres ou votre recherche pour decouvrir des
+                recettes.
               </p>
               <Link
                 href="/recettes"
                 className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-hover shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
                   <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                   <path d="M3 3v5h5" />
                 </svg>
@@ -303,7 +337,15 @@ export default async function RecettesPage({
                 page={page - 1}
                 params={sp}
                 label={
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
                     <path d="m15 18-6-6 6-6" />
                   </svg>
                 }
@@ -314,10 +356,11 @@ export default async function RecettesPage({
                 (p) =>
                   p === 1 ||
                   p === totalPages ||
-                  (p >= page - 2 && p <= page + 2)
+                  (p >= page - 2 && p <= page + 2),
               )
               .reduce<(number | "...")[]>((acc, p, idx, arr) => {
-                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...");
+                if (idx > 0 && p - (arr[idx - 1] as number) > 1)
+                  acc.push("...");
                 acc.push(p);
                 return acc;
               }, [])
@@ -337,14 +380,22 @@ export default async function RecettesPage({
                     label={String(p)}
                     isActive={p === page}
                   />
-                )
+                ),
               )}
             {page < totalPages && (
               <PaginationLink
                 page={page + 1}
                 params={sp}
                 label={
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
                     <path d="m9 18 6-6-6-6" />
                   </svg>
                 }

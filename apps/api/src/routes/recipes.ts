@@ -13,7 +13,17 @@ import {
   recipesEquipment,
   equipment,
 } from "@cooked/db";
-import { and, count, desc, eq, ilike, inArray, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import { paginationSchema } from "../lib/validation.js";
 
 const VALID_DIFFICULTIES = ["easy", "intermediate", "hard"] as const;
@@ -32,14 +42,27 @@ app.get("/", async (c) => {
   const difficulty = c.req.query("difficulty");
   const sort = c.req.query("sort") ?? "recent";
 
-  const conditions = [eq(recipes.status, "published"), isNull(recipes.deletedAt)];
+  const conditions = [
+    eq(recipes.status, "published"),
+    isNull(recipes.deletedAt),
+  ];
 
   if (search) {
     const sanitized = search.replace(/[%_\\]/g, "\\$&");
-    conditions.push(ilike(recipes.title, `%${sanitized}%`));
+    const pattern = `%${sanitized}%`;
+    conditions.push(
+      or(ilike(recipes.title, pattern), ilike(recipes.description, pattern))!,
+    );
   }
-  if (difficulty && VALID_DIFFICULTIES.includes(difficulty as typeof VALID_DIFFICULTIES[number])) {
-    conditions.push(eq(recipes.difficulty, difficulty as "easy" | "intermediate" | "hard"));
+  if (
+    difficulty &&
+    VALID_DIFFICULTIES.includes(
+      difficulty as (typeof VALID_DIFFICULTIES)[number],
+    )
+  ) {
+    conditions.push(
+      eq(recipes.difficulty, difficulty as "easy" | "intermediate" | "hard"),
+    );
   }
 
   let recipeIds: string[] | null = null;
@@ -110,34 +133,49 @@ app.get("/", async (c) => {
 
   const ids = rows.map((r) => r.id);
 
-  const [primaryMedias, recipeMacros, recipeCategories, recipeTags] =
-    await Promise.all([
-      db
-        .select()
-        .from(medias)
-        .where(and(inArray(medias.recipeId, ids), eq(medias.isPrimary, true))),
-      db.select().from(macros).where(inArray(macros.recipeId, ids)),
-      db
-        .select({
-          recipeId: recipesCategories.recipeId,
-          id: categories.id,
-          name: categories.name,
-          slug: categories.slug,
-        })
-        .from(recipesCategories)
-        .innerJoin(categories, eq(recipesCategories.categoryId, categories.id))
-        .where(inArray(recipesCategories.recipeId, ids)),
-      db
-        .select({
-          recipeId: recipesTags.recipeId,
-          id: tags.id,
-          name: tags.name,
-          slug: tags.slug,
-        })
-        .from(recipesTags)
-        .innerJoin(tags, eq(recipesTags.tagId, tags.id))
-        .where(inArray(recipesTags.recipeId, ids)),
-    ]);
+  const [
+    primaryMedias,
+    recipeMacros,
+    recipeCategories,
+    recipeTags,
+    recipeEquipment,
+  ] = await Promise.all([
+    db
+      .select()
+      .from(medias)
+      .where(and(inArray(medias.recipeId, ids), eq(medias.isPrimary, true))),
+    db.select().from(macros).where(inArray(macros.recipeId, ids)),
+    db
+      .select({
+        recipeId: recipesCategories.recipeId,
+        id: categories.id,
+        name: categories.name,
+        slug: categories.slug,
+      })
+      .from(recipesCategories)
+      .innerJoin(categories, eq(recipesCategories.categoryId, categories.id))
+      .where(inArray(recipesCategories.recipeId, ids)),
+    db
+      .select({
+        recipeId: recipesTags.recipeId,
+        id: tags.id,
+        name: tags.name,
+        slug: tags.slug,
+      })
+      .from(recipesTags)
+      .innerJoin(tags, eq(recipesTags.tagId, tags.id))
+      .where(inArray(recipesTags.recipeId, ids)),
+    db
+      .select({
+        recipeId: recipesEquipment.recipeId,
+        id: equipment.id,
+        name: equipment.name,
+        iconSlug: equipment.iconSlug,
+      })
+      .from(recipesEquipment)
+      .innerJoin(equipment, eq(recipesEquipment.equipmentId, equipment.id))
+      .where(inArray(recipesEquipment.recipeId, ids)),
+  ]);
 
   const enriched = rows.map((recipe) => ({
     ...recipe,
@@ -145,6 +183,7 @@ app.get("/", async (c) => {
     macros: recipeMacros.find((m) => m.recipeId === recipe.id) ?? null,
     categories: recipeCategories.filter((rc) => rc.recipeId === recipe.id),
     tags: recipeTags.filter((t) => t.recipeId === recipe.id),
+    equipment: recipeEquipment.filter((e) => e.recipeId === recipe.id),
   }));
 
   return c.json({ recipes: enriched, page, limit, total });
@@ -156,7 +195,13 @@ app.get("/:slug", async (c) => {
   const [recipe] = await db
     .select()
     .from(recipes)
-    .where(and(eq(recipes.slug, slug), eq(recipes.status, "published"), isNull(recipes.deletedAt)))
+    .where(
+      and(
+        eq(recipes.slug, slug),
+        eq(recipes.status, "published"),
+        isNull(recipes.deletedAt),
+      ),
+    )
     .limit(1);
 
   if (!recipe) return c.json({ error: "Not found" }, 404);

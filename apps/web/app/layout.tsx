@@ -27,7 +27,10 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} ${jetbrainsMono.variable}`}
       >
-        {children}
+        <a href="#main-content" className="skip-to-content">
+          Aller au contenu principal
+        </a>
+        <main id="main-content">{children}</main>
       </body>
     </html>
   );

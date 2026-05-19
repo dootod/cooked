@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { difficultyLabel } from "@/lib/recipe-utils";
 
 interface Stats {
   total: number;
@@ -47,12 +48,6 @@ function useAnimatedCounter(target: number, duration = 1200) {
   return count;
 }
 
-const difficultyLabel: Record<string, string> = {
-  easy: "Facile",
-  intermediate: "Moyen",
-  hard: "Difficile",
-};
-
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentRecipes, setRecentRecipes] = useState<RecentRecipe[]>([]);
@@ -62,16 +57,31 @@ export default function AdminDashboardPage() {
     async function load() {
       try {
         const [recipesRes, categoriesRes, usersRes] = await Promise.allSettled([
-          api.get<{ recipes: RecentRecipe[]; pagination: { total: number } }>("/api/admin/recipes?limit=200"),
-          api.get<{ categories: Array<{ id: string }> }>("/api/admin/categories"),
-          api.get<{ totalUsers: number; activeSessions: number }>("/api/admin/users/stats"),
+          api.get<{ recipes: RecentRecipe[]; pagination: { total: number } }>(
+            "/api/admin/recipes?limit=200",
+          ),
+          api.get<{ categories: Array<{ id: string }> }>(
+            "/api/admin/categories",
+          ),
+          api.get<{ totalUsers: number; activeSessions: number }>(
+            "/api/admin/users/stats",
+          ),
         ]);
 
-        const recipesData = recipesRes.status === "fulfilled" ? recipesRes.value : { recipes: [], pagination: { total: 0 } };
+        const recipesData =
+          recipesRes.status === "fulfilled"
+            ? recipesRes.value
+            : { recipes: [], pagination: { total: 0 } };
         const recipes = recipesData.recipes;
         const totalRecipes = recipesData.pagination.total;
-        const categories = categoriesRes.status === "fulfilled" ? categoriesRes.value.categories : [];
-        const userStats = usersRes.status === "fulfilled" ? usersRes.value : { totalUsers: 0, activeSessions: 0 };
+        const categories =
+          categoriesRes.status === "fulfilled"
+            ? categoriesRes.value.categories
+            : [];
+        const userStats =
+          usersRes.status === "fulfilled"
+            ? usersRes.value
+            : { totalUsers: 0, activeSessions: 0 };
 
         setStats({
           total: totalRecipes,
@@ -83,11 +93,19 @@ export default function AdminDashboardPage() {
         });
 
         const sorted = [...recipes].sort(
-          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         );
         setRecentRecipes(sorted.slice(0, 6));
       } catch {
-        setStats({ total: 0, published: 0, draft: 0, categories: 0, users: 0, sessions: 0 });
+        setStats({
+          total: 0,
+          published: 0,
+          draft: 0,
+          categories: 0,
+          users: 0,
+          sessions: 0,
+        });
       }
       setLoading(false);
     }
@@ -116,20 +134,49 @@ export default function AdminDashboardPage() {
     });
   }
 
-  function formatTime(iso: string) {
-    return new Date(iso).toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
   const kpis = [
-    { key: "total", label: "Recettes", value: animTotal, color: "#475B8A", bg: "bg-primary/8" },
-    { key: "published", label: "Publiees", value: animPublished, color: "#22C55E", bg: "bg-emerald-500/8" },
-    { key: "draft", label: "Brouillons", value: animDraft, color: "#FF8C69", bg: "bg-accent/8" },
-    { key: "categories", label: "Categories", value: animCategories, color: "#A855F7", bg: "bg-purple-500/8" },
-    { key: "users", label: "Utilisateurs", value: animUsers, color: "#06B6D4", bg: "bg-cyan-500/8" },
-    { key: "sessions", label: "Sessions actives", value: animSessions, color: "#F59E0B", bg: "bg-amber-500/8" },
+    {
+      key: "total",
+      label: "Recettes",
+      value: animTotal,
+      color: "#475B8A",
+      bg: "bg-primary/8",
+    },
+    {
+      key: "published",
+      label: "Publiees",
+      value: animPublished,
+      color: "#22C55E",
+      bg: "bg-emerald-500/8",
+    },
+    {
+      key: "draft",
+      label: "Brouillons",
+      value: animDraft,
+      color: "#FF8C69",
+      bg: "bg-accent/8",
+    },
+    {
+      key: "categories",
+      label: "Categories",
+      value: animCategories,
+      color: "#A855F7",
+      bg: "bg-purple-500/8",
+    },
+    {
+      key: "users",
+      label: "Utilisateurs",
+      value: animUsers,
+      color: "#06B6D4",
+      bg: "bg-cyan-500/8",
+    },
+    {
+      key: "sessions",
+      label: "Sessions actives",
+      value: animSessions,
+      color: "#F59E0B",
+      bg: "bg-amber-500/8",
+    },
   ];
 
   return (
@@ -148,17 +195,25 @@ export default function AdminDashboardPage() {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-[88px] rounded-xl bg-white/40 animate-pulse" />
+            <div
+              key={i}
+              className="h-[88px] rounded-xl bg-white/40 animate-pulse"
+            />
           ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {kpis.map((kpi) => (
             <div key={kpi.key} className="admin-glass rounded-xl p-4">
-              <p className="text-[28px] font-bold font-mono leading-none tracking-tight" style={{ color: kpi.color }}>
+              <p
+                className="text-[28px] font-bold font-mono leading-none tracking-tight"
+                style={{ color: kpi.color }}
+              >
                 {kpi.value}
               </p>
-              <p className="text-[11px] font-medium text-text-secondary mt-1.5">{kpi.label}</p>
+              <p className="text-[11px] font-medium text-text-secondary mt-1.5">
+                {kpi.label}
+              </p>
             </div>
           ))}
         </div>
@@ -169,7 +224,9 @@ export default function AdminDashboardPage() {
         {/* Recent Recipes — 2/3 */}
         <div className="lg:col-span-2 admin-glass rounded-xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-border/20 flex items-center justify-between">
-            <h2 className="text-[13px] font-bold text-text">Recettes recentes</h2>
+            <h2 className="text-[13px] font-bold text-text">
+              Recettes recentes
+            </h2>
             <Link
               href="/admin/recettes"
               className="text-[12px] font-medium text-primary hover:text-primary-hover transition-colors"
@@ -185,7 +242,15 @@ export default function AdminDashboardPage() {
                 className="inline-flex items-center gap-1.5 mt-3 text-[13px] font-medium text-primary hover:text-primary-hover transition-colors"
               >
                 Creer une recette
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </Link>
@@ -201,7 +266,9 @@ export default function AdminDashboardPage() {
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div
                       className={`w-[3px] h-8 rounded-full shrink-0 ${
-                        recipe.status === "published" ? "bg-emerald-400" : "bg-accent/60"
+                        recipe.status === "published"
+                          ? "bg-emerald-400"
+                          : "bg-accent/60"
                       }`}
                     />
                     <div className="min-w-0 flex-1">
@@ -213,7 +280,8 @@ export default function AdminDashboardPage() {
                           {formatDate(recipe.createdAt)}
                         </span>
                         <span className="text-[10px] text-text-tertiary">
-                          {difficultyLabel[recipe.difficulty] ?? recipe.difficulty}
+                          {difficultyLabel[recipe.difficulty] ??
+                            recipe.difficulty}
                         </span>
                         <span className="text-[10px] text-text-tertiary font-mono">
                           {recipe.prepTime + recipe.cookTime}min
@@ -243,18 +311,52 @@ export default function AdminDashboardPage() {
             <h2 className="text-[13px] font-bold text-text mb-4">Plateforme</h2>
             <div className="space-y-2.5">
               {[
-                { name: "API Hono", status: "ok", detail: "Port 3001", color: "bg-emerald-400" },
-                { name: "PostgreSQL", status: "ok", detail: "Drizzle ORM", color: "bg-emerald-400" },
-                { name: "Better Auth", status: "ok", detail: `${stats?.users ?? 0} comptes`, color: "bg-emerald-400" },
-                { name: "Stockage R2", status: "pending", detail: "Non configure", color: "bg-amber-400" },
-                { name: "Emails Resend", status: "ok", detail: "Connecte", color: "bg-emerald-400" },
+                {
+                  name: "API Hono",
+                  status: "ok",
+                  detail: "Port 3001",
+                  color: "bg-emerald-400",
+                },
+                {
+                  name: "PostgreSQL",
+                  status: "ok",
+                  detail: "Drizzle ORM",
+                  color: "bg-emerald-400",
+                },
+                {
+                  name: "Better Auth",
+                  status: "ok",
+                  detail: `${stats?.users ?? 0} comptes`,
+                  color: "bg-emerald-400",
+                },
+                {
+                  name: "Stockage R2",
+                  status: "pending",
+                  detail: "Non configure",
+                  color: "bg-amber-400",
+                },
+                {
+                  name: "Emails Resend",
+                  status: "ok",
+                  detail: "Connecte",
+                  color: "bg-emerald-400",
+                },
               ].map((svc) => (
-                <div key={svc.name} className="flex items-center justify-between py-1.5">
+                <div
+                  key={svc.name}
+                  className="flex items-center justify-between py-1.5"
+                >
                   <div className="flex items-center gap-2.5">
-                    <span className={`block w-2 h-2 rounded-full ${svc.color}`} />
-                    <span className="text-[12px] font-medium text-text">{svc.name}</span>
+                    <span
+                      className={`block w-2 h-2 rounded-full ${svc.color}`}
+                    />
+                    <span className="text-[12px] font-medium text-text">
+                      {svc.name}
+                    </span>
                   </div>
-                  <span className={`text-[11px] font-mono ${svc.status === "ok" ? "text-emerald-600" : "text-amber-600"}`}>
+                  <span
+                    className={`text-[11px] font-mono ${svc.status === "ok" ? "text-emerald-600" : "text-amber-600"}`}
+                  >
                     {svc.detail}
                   </span>
                 </div>
@@ -264,7 +366,9 @@ export default function AdminDashboardPage() {
 
           {/* Stack info */}
           <div className="admin-glass rounded-xl p-5">
-            <h2 className="text-[13px] font-bold text-text mb-4">Stack technique</h2>
+            <h2 className="text-[13px] font-bold text-text mb-4">
+              Stack technique
+            </h2>
             <div className="space-y-2">
               {[
                 { label: "Frontend", value: "Next.js 16.2" },
@@ -274,15 +378,26 @@ export default function AdminDashboardPage() {
                 { label: "Monorepo", value: "Turborepo + pnpm" },
                 { label: "CSS", value: "Tailwind CSS v4" },
               ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between py-1">
-                  <span className="text-[11px] text-text-secondary">{item.label}</span>
-                  <span className="text-[11px] font-mono text-text">{item.value}</span>
+                <div
+                  key={item.label}
+                  className="flex items-center justify-between py-1"
+                >
+                  <span className="text-[11px] text-text-secondary">
+                    {item.label}
+                  </span>
+                  <span className="text-[11px] font-mono text-text">
+                    {item.value}
+                  </span>
                 </div>
               ))}
             </div>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
-              <span className="text-[10px] font-mono text-text-tertiary">v1.0.0-dev</span>
-              <span className="text-[10px] text-text-tertiary">Phase 1 MVP</span>
+              <span className="text-[10px] font-mono text-text-tertiary">
+                v1.0.0-dev
+              </span>
+              <span className="text-[10px] text-text-tertiary">
+                Phase 1 MVP
+              </span>
             </div>
           </div>
         </div>

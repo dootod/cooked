@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { difficultyLabel } from "@/lib/recipe-utils";
 
 type RecipeCardData = {
   slug: string;
@@ -16,12 +17,6 @@ type RecipeCardData = {
 type Props = {
   recipe: RecipeCardData;
   size?: "small" | "medium" | "hero";
-};
-
-const difficultyLabel: Record<string, string> = {
-  easy: "Facile",
-  intermediate: "Moyen",
-  hard: "Difficile",
 };
 
 const difficultyColor: Record<string, string> = {
@@ -65,8 +60,18 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
               </span>
             ))}
             <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-xs font-medium text-white border border-white/10 flex items-center gap-1.5">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
               </svg>
               {totalTime} min
             </span>
@@ -106,12 +111,24 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
         className="group block rounded-2xl overflow-hidden public-glow-card p-5 h-full"
       >
         <div className="flex items-center gap-2 mb-3">
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${difficultyColor[recipe.difficulty]}`}>
+          <span
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${difficultyColor[recipe.difficulty]}`}
+          >
             {difficultyLabel[recipe.difficulty]}
           </span>
           <span className="text-xs text-text-tertiary flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
             {totalTime} min
           </span>
@@ -121,8 +138,12 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
         </h3>
         {recipe.macros && (
           <div className="mt-3 flex items-center gap-2 text-[10px] font-mono text-text-tertiary">
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.kcal)} kcal</span>
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.protein)}g P</span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.kcal)} kcal
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.protein)}g P
+            </span>
           </div>
         )}
       </Link>
@@ -145,8 +166,19 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary-light to-accent-light flex items-center justify-center">
-            <svg className="text-primary/20" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 11h.01M11 15h.01M16 16h.01" /><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16" />
+            <svg
+              className="text-primary/20"
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M15 11h.01M11 15h.01M16 16h.01" />
+              <path d="m2 16 20 6-6-20A20 20 0 0 0 2 16" />
             </svg>
           </div>
         )}
@@ -164,12 +196,24 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
       </div>
       <div className="p-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${difficultyColor[recipe.difficulty]}`}>
+          <span
+            className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${difficultyColor[recipe.difficulty]}`}
+          >
             {difficultyLabel[recipe.difficulty]}
           </span>
           <span className="text-xs text-text-tertiary flex items-center gap-1">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
             </svg>
             {totalTime} min
           </span>
@@ -179,10 +223,18 @@ export default function RecipeCard({ recipe, size = "medium" }: Props) {
         </h3>
         {recipe.macros && (
           <div className="mt-2.5 flex items-center gap-2 text-[10px] font-mono text-text-tertiary">
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.kcal)} kcal</span>
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.protein)}g P</span>
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.carbs)}g G</span>
-            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">{Math.round(recipe.macros.fat)}g L</span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.kcal)} kcal
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.protein)}g P
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.carbs)}g G
+            </span>
+            <span className="px-1.5 py-0.5 rounded bg-primary/[0.06]">
+              {Math.round(recipe.macros.fat)}g L
+            </span>
           </div>
         )}
       </div>

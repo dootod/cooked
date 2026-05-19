@@ -1,8 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { use } from "react";
-import { RecipeForm } from "@/components/admin/RecipeForm";
+
+const RecipeForm = dynamic(
+  () => import("@/components/admin/RecipeForm").then((m) => m.RecipeForm),
+  {
+    loading: () => (
+      <div className="h-96 rounded-xl bg-white/40 animate-pulse" />
+    ),
+  },
+);
 
 export default function ModifierRecettePage({
   params,
@@ -18,8 +27,18 @@ export default function ModifierRecettePage({
           href="/admin/recettes"
           className="inline-flex items-center gap-1.5 text-[13px] font-medium text-text-tertiary hover:text-primary transition-colors mb-3 group"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:-translate-x-0.5 transition-transform">
-            <path d="m15 18-6-6 6-6"/>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="group-hover:-translate-x-0.5 transition-transform"
+          >
+            <path d="m15 18-6-6 6-6" />
           </svg>
           Retour aux recettes
         </Link>

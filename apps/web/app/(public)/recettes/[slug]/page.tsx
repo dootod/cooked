@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RecipeClientFeatures } from "./RecipeClientFeatures";
+import { difficultyLabel } from "@/lib/recipe-utils";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -53,15 +54,9 @@ async function getRecipe(slug: string): Promise<RecipeDetail | null> {
   }
 }
 
-const difficultyLabel: Record<string, string> = {
-  easy: "Facile",
-  intermediate: "Moyen",
-  hard: "Difficile",
-};
-
 function getVideoEmbedUrl(url: string): string | null {
   const ytMatch = url.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/,
   );
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
@@ -96,9 +91,7 @@ export default async function RecetteDetailPage({
   const totalTime = recipe.prepTime + recipe.cookTime;
   const primaryMedia = recipe.medias.find((m) => m.isPrimary);
   const gallery = recipe.medias.filter((m) => !m.isPrimary);
-  const videoEmbed = recipe.videoUrl
-    ? getVideoEmbedUrl(recipe.videoUrl)
-    : null;
+  const videoEmbed = recipe.videoUrl ? getVideoEmbedUrl(recipe.videoUrl) : null;
 
   return (
     <div>
@@ -129,13 +122,34 @@ export default async function RecetteDetailPage({
               <Link href="/" className="hover:text-white transition-colors">
                 Accueil
               </Link>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="m9 18 6-6-6-6" />
               </svg>
-              <Link href="/recettes" className="hover:text-white transition-colors">
+              <Link
+                href="/recettes"
+                className="hover:text-white transition-colors"
+              >
                 Recettes
               </Link>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="m9 18 6-6-6-6" />
               </svg>
               <span className="text-white/60 truncate">{recipe.title}</span>
@@ -183,52 +197,108 @@ export default async function RecetteDetailPage({
           <div className="flex flex-wrap items-center gap-5 sm:gap-7">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                <svg className="text-primary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="text-primary"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold font-mono text-text">{totalTime} min</p>
-                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">Total</p>
+                <p className="text-sm font-bold font-mono text-text">
+                  {totalTime} min
+                </p>
+                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
+                  Total
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-                <svg className="text-accent" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="text-accent"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
                   <line x1="6" y1="17" x2="18" y2="17" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold font-mono text-text">{recipe.prepTime} min</p>
-                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">Prep</p>
+                <p className="text-sm font-bold font-mono text-text">
+                  {recipe.prepTime} min
+                </p>
+                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
+                  Prep
+                </p>
               </div>
             </div>
             {recipe.cookTime > 0 && (
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center">
-                  <svg className="text-[#a78bfa]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    className="text-[#a78bfa]"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <path d="M12 12h.01" />
                     <path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 3 4.5 9.5 4.5 9.5s4.5-6.5 4.5-9.5A4.5 4.5 0 0 0 12 2Z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-bold font-mono text-text">{recipe.cookTime} min</p>
-                  <p className="text-[10px] text-text-tertiary uppercase tracking-wide">Cuisson</p>
+                  <p className="text-sm font-bold font-mono text-text">
+                    {recipe.cookTime} min
+                  </p>
+                  <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
+                    Cuisson
+                  </p>
                 </div>
               </div>
             )}
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-text/[0.06] flex items-center justify-center">
-                <svg className="text-text-secondary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="text-text-secondary"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-bold font-mono text-text">{recipe.servings}</p>
-                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">Portions</p>
+                <p className="text-sm font-bold font-mono text-text">
+                  {recipe.servings}
+                </p>
+                <p className="text-[10px] text-text-tertiary uppercase tracking-wide">
+                  Portions
+                </p>
               </div>
             </div>
           </div>
@@ -258,7 +328,17 @@ export default async function RecetteDetailPage({
               {recipe.equipment.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-border/30">
                   <h3 className="text-sm font-semibold text-text mb-3 flex items-center gap-2">
-                    <svg className="text-text-tertiary" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      className="text-text-tertiary"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
                     </svg>
                     Materiel
@@ -298,7 +378,17 @@ export default async function RecetteDetailPage({
             {/* Section header */}
             <div className="flex items-center gap-3 mb-8">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <svg className="text-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="text-primary"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M12 20h9" />
                   <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                 </svg>
@@ -323,7 +413,9 @@ export default async function RecetteDetailPage({
                   </div>
                   <div className="flex-1 pb-6">
                     <div className="p-4 sm:p-5 rounded-xl bg-white border border-border/20 shadow-sm hover:shadow-md hover:border-primary/15 transition-all">
-                      <p className="text-text leading-relaxed">{step.content}</p>
+                      <p className="text-text leading-relaxed">
+                        {step.content}
+                      </p>
                       {step.mediaUrl && (
                         <div className="mt-3 rounded-lg overflow-hidden max-w-sm relative aspect-video">
                           <Image
@@ -346,13 +438,25 @@ export default async function RecetteDetailPage({
               <div className="mt-10">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
-                    <svg className="text-accent" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      className="text-accent"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-serif font-bold text-text">Photos</h3>
+                  <h3 className="text-lg font-serif font-bold text-text">
+                    Photos
+                  </h3>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x">
                   {gallery.map((media) => (
@@ -378,15 +482,29 @@ export default async function RecetteDetailPage({
               <div className="mt-10">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-9 h-9 rounded-xl bg-[#a78bfa]/10 flex items-center justify-center">
-                    <svg className="text-[#a78bfa]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      className="text-[#a78bfa]"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <polygon points="5 3 19 12 5 21 5 3" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-serif font-bold text-text">Video</h3>
+                  <h3 className="text-lg font-serif font-bold text-text">
+                    Video
+                  </h3>
                 </div>
                 <div className="aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
                   <iframe
                     src={videoEmbed}
+                    title={`Video: ${recipe.title}`}
+                    loading="lazy"
                     className="w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

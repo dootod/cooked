@@ -2,6 +2,8 @@
 
 > Audit du 18/05/2026 — 45 items
 
+- [x] **Ajouter manuellement** ~~On ne peux plus supprimer des utilisateurs depuis la page utilisateurs admin~~ Fix: `audit_logs.userId` etait `.notNull()` + `onDelete: "set null"` = conflit constraint. Rendu nullable — `packages/db/schema/audit.ts`
+
 ---
 
 ## CRITIQUE (Security / Data Integrity)
@@ -31,32 +33,32 @@
 
 ## MOYENNE PRIORITE (DX / Accessibilite / Performance)
 
-- [ ] **#20** Web — Zero accessibilite: pas de focus indicators, aria-labels, skip-to-content — Global web
-- [ ] **#21** Web — Pas de `prefers-reduced-motion`, animations tournent toujours — `apps/web/app/globals.css`
-- [ ] **#22** Web — Video iframes sans attribut `title` + pas lazy-loaded — `apps/web/app/(public)/recettes/[slug]/page.tsx`
-- [ ] **#23** Web — Header `isDark` hardcode a `true` — `apps/web/components/public/Header.tsx:31`
-- [ ] **#24** Web — Admin recettes pas de pagination, hardcode `limit=200` — `apps/web/app/admin/recettes/page.tsx`
-- [ ] **#25** Web — Stagger animation inline `animate-stagger-${i}` classes Tailwind pas generees — `apps/web/app/compte/favoris/page.tsx`
-- [ ] **#26** API — Equipment pas retourne dans listing public recettes (seulement detail) — `apps/api/src/routes/recipes.ts`
-- [ ] **#27** API — Search recettes titre uniquement, pas description/ingredients — `apps/api/src/routes/recipes.ts:39`
-- [ ] **#28** API — Email verification bypass sur PATCH /api/me (inconsistant avec favorites) — `apps/api/src/routes/me.ts`
-- [ ] **#29** API — Orphan upload cleanup race condition sans lock DB — `apps/api/src/routes/admin/cleanup.ts`
-- [ ] **#30** API — Type safety, unsafe cast `as unknown as AppEnv` dans auth middleware — `apps/api/src/middleware/auth.ts:10`
-- [ ] **#31** DB — Timestamps nullable dans `verification` table, inconsistant avec autres tables — `packages/db/schema/auth.ts`
-- [ ] **#32** DB — Index composite manquant `(action, created_at)` sur audit_logs — `packages/db/schema/audit.ts`
-- [ ] **#33** Infra — Zero ESLint, seulement Prettier — Root config
-- [ ] **#34** Infra — Zero pre-commit hooks (husky/lint-staged) — Root config
-- [ ] **#35** Infra — `db:generate`/`db:migrate` pas dans turbo.json — `turbo.json`
+- [x] **#20** Web — Focus indicators (`*:focus-visible`), skip-to-content link, `<main id="main-content">` — `globals.css` + `layout.tsx`
+- [x] **#21** Web — `prefers-reduced-motion: reduce` desactive toutes animations — `globals.css`
+- [x] **#22** Web — `title` + `loading="lazy"` ajoutes sur iframe video — `apps/web/app/(public)/recettes/[slug]/page.tsx`
+- [x] **#23** Web — `isDark` dynamique selon pathname (accueil + detail recette = dark) — `Header.tsx:31`
+- [x] **#24** Web — Pagination admin recettes (20/page) avec controles Precedent/Suivant — `apps/web/app/admin/recettes/page.tsx`
+- [x] **#25** Web — ~~Stagger animation~~ FAUX POSITIF: classes `.animate-stagger-1` a `.animate-stagger-6` deja definies dans `globals.css:292-297`
+- [x] **#26** API — Equipment inclus dans listing public recettes — `apps/api/src/routes/recipes.ts`
+- [x] **#27** API — Search etendu a `title OR description` — `apps/api/src/routes/recipes.ts`
+- [x] **#28** API — `emailVerifiedMiddleware` ajoute sur `PATCH /api/me` — `apps/api/src/routes/me.ts`
+- [x] **#29** API — Lock in-memory `cleanupRunning` empeche execution concurrente — `apps/api/src/routes/admin/cleanup.ts`
+- [x] **#30** API — Cast simplifie `as AppEnv["Variables"]["user"]` (supprime `unknown`) — `apps/api/src/middleware/auth.ts`
+- [x] **#31** DB — `createdAt`/`updatedAt` dans verification rendus `.notNull().defaultNow()` — `packages/db/schema/auth.ts`
+- [x] **#32** DB — Index composite `(action, created_at)` ajoute sur audit_logs — `packages/db/schema/audit.ts`
+- [x] **#33** Infra — ESLint 10 + typescript-eslint configure (flat config) — `eslint.config.js`
+- [x] **#34** Infra — Husky + lint-staged (ESLint fix + Prettier sur pre-commit) — `.husky/pre-commit` + `package.json`
+- [x] **#35** Infra — `db:generate`/`db:migrate` ajoutes dans turbo.json — `turbo.json`
 
 ## BASSE PRIORITE (Polish / Nice-to-have)
 
-- [ ] **#36** Web — Pas de dynamic imports composants lourds (RecipeForm, etc.) — Multiple
-- [ ] **#37** Web — Animations longues (8-12s) drain batterie mobile — `globals.css`
+- [x] **#36** Web — Dynamic import pour RecipeForm (loading skeleton) — `nouveau/page.tsx` + `modifier/page.tsx`
+- [x] **#37** Web — Animation morph reduite 8s → 5s + `prefers-reduced-motion` couvre tout — `globals.css`
 - [ ] **#38** Web — Header trop gros composant, split en sous-composants — `Header.tsx`
-- [ ] **#39** Web — Code duplique `difficultyLabel` dans plusieurs fichiers — Multiple
-- [ ] **#40** Web — Pas de next.config.js (CSP headers, image domains) — Manquant
+- [x] **#39** Web — `difficultyLabel` extrait dans `lib/recipe-utils.ts`, importe dans 5 fichiers — Multiple
+- [x] **#40** Web — ~~Pas de next.config~~ FAUX POSITIF: `next.config.ts` existe deja avec CSP + image domains
 - [ ] **#41** Web — Pas de tests (zero jest/vitest) — Global
 - [ ] **#42** API — Pas de tests — Global
 - [ ] **#43** DB — Subpath export `@cooked/db/schema` existe malgre warning CLAUDE.md — `packages/db/package.json`
-- [ ] **#44** DB — `audit_logs.targetId`/`targetType` pas de validation both-or-neither — `packages/db/schema/audit.ts`
-- [ ] **#45** Infra — `.env.example` web manque `BETTER_AUTH_SECRET` — `apps/web/.env.example`
+- [x] **#44** DB — Type union `AuditTarget` force both-or-neither sur `targetId`/`targetType` — `apps/api/src/lib/audit.ts`
+- [x] **#45** Infra — `BETTER_AUTH_SECRET` ajoute a `.env.example` — `apps/web/.env.example`

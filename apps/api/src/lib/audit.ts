@@ -12,13 +12,17 @@ export type AuditAction =
   | "comment.reject"
   | "comment.delete";
 
-export async function logAudit(opts: {
-  userId: string;
-  action: AuditAction;
-  targetId?: string;
-  targetType?: string;
-  metadata?: Record<string, unknown>;
-}) {
+type AuditTarget =
+  | { targetId: string; targetType: string }
+  | { targetId?: never; targetType?: never };
+
+export async function logAudit(
+  opts: {
+    userId: string;
+    action: AuditAction;
+    metadata?: Record<string, unknown>;
+  } & AuditTarget,
+) {
   await db.insert(auditLogs).values({
     userId: opts.userId,
     action: opts.action,
