@@ -18,7 +18,7 @@ export default function MotDePasseOubliePage() {
     try {
       await api.post("/api/auth/request-password-reset", {
         email,
-        redirectTo: `${window.location.origin}/compte/reinitialiser-mot-de-passe`,
+        redirectTo: "/compte/reinitialiser-mot-de-passe",
       });
       setSent(true);
     } catch {
@@ -43,7 +43,8 @@ export default function MotDePasseOubliePage() {
         {sent ? (
           <div className="p-5 rounded-2xl bg-primary/5 border border-primary/20">
             <p className="text-[14px] text-text">
-              Si un compte existe avec cet email, vous recevrez un lien de reinitialisation.
+              Si un compte existe avec cet email, vous recevrez un lien de
+              reinitialisation.
             </p>
             <Link
               href="/compte/connexion"
@@ -70,7 +71,17 @@ export default function MotDePasseOubliePage() {
 
             {error && (
               <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
                   <line x1="9" y1="9" x2="15" y2="15" />

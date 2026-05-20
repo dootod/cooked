@@ -53,11 +53,13 @@ export default function InscriptionPage() {
       email,
       password,
       name,
-      callbackURL: `${window.location.origin}/compte/email-verifie`,
+      callbackURL: "/compte/email-verifie",
     });
 
     if (authError) {
-      setError(authError.message || "Une erreur est survenue lors de l'inscription.");
+      setError(
+        authError.message || "Une erreur est survenue lors de l'inscription.",
+      );
     } else if (data) {
       router.push("/compte/connexion?registered=1");
     }
@@ -84,10 +86,14 @@ export default function InscriptionPage() {
         />
 
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
 
         {/* Logo */}
         <div className="relative z-10">
@@ -101,13 +107,15 @@ export default function InscriptionPage() {
         {/* Branding content */}
         <div className="relative z-10 hidden lg:block">
           <h2 className="text-[32px] xl:text-[38px] font-bold text-white leading-tight tracking-tight">
-            Rejoignez la<br />
+            Rejoignez la
+            <br />
             <span className="bg-gradient-to-r from-accent via-primary to-purple-400 bg-clip-text text-transparent">
               communauté Cooked
             </span>
           </h2>
           <p className="mt-4 text-[15px] text-white/40 leading-relaxed max-w-md">
-            Créez votre compte pour sauvegarder vos recettes favorites, noter et commenter.
+            Créez votre compte pour sauvegarder vos recettes favorites, noter et
+            commenter.
           </p>
         </div>
 
@@ -120,7 +128,16 @@ export default function InscriptionPage() {
           ].map((feature) => (
             <div key={feature} className="flex items-center gap-2.5">
               <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#475B8A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#475B8A"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
@@ -213,7 +230,17 @@ export default function InscriptionPage() {
 
             {error && (
               <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-red-600 bg-red-50/80 border border-red-100 rounded-xl">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="15" y1="9" x2="9" y2="15" />
                   <line x1="9" y1="9" x2="15" y2="15" />

@@ -32,7 +32,9 @@ function formatZodErrors(issues: z.ZodIssue[]): string[] {
 
 const app = new Hono();
 
-app.use("*", logger());
+if (process.env.NODE_ENV !== "production") {
+  app.use("*", logger());
+}
 app.use("*", async (c, next) => {
   await next();
   c.header("X-Content-Type-Options", "nosniff");
@@ -114,7 +116,11 @@ app.onError((err, c) => {
       400,
     );
   }
-  console.error("[API Error]", err);
+  if (process.env.NODE_ENV === "production") {
+    console.error("[API Error]", err.message);
+  } else {
+    console.error("[API Error]", err);
+  }
   return c.json({ error: "Erreur interne" }, 500);
 });
 

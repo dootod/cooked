@@ -3,12 +3,18 @@ import { z } from "zod";
 const MAX_TEXT = 500;
 const MAX_CONTENT = 5000;
 
-const VIDEO_URL_PATTERN = /^https:\/\/(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com|vimeo\.com)\/.+/;
+const VIDEO_URL_PATTERN =
+  /^https:\/\/(www\.)?(youtube\.com|youtu\.be|player\.vimeo\.com|vimeo\.com)\/.+/;
 
 function isAllowedMediaUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname === "localhost") return true;
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    if (parsed.hostname === "localhost") {
+      return process.env.NODE_ENV !== "production";
+    }
     const apiBase = process.env.API_PUBLIC_URL;
     if (apiBase) {
       if (parsed.hostname === new URL(apiBase).hostname) return true;
@@ -32,9 +38,15 @@ export const createRecipeSchema = z.object({
   difficulty: z.enum(["easy", "intermediate", "hard"]),
   servings: z.coerce.number().int().min(1).max(100),
   status: z.enum(["draft", "published"]).optional(),
-  videoUrl: z.string().url().max(MAX_TEXT)
-    .refine((url) => VIDEO_URL_PATTERN.test(url), { message: "URL video doit etre YouTube ou Vimeo" })
-    .nullable().optional(),
+  videoUrl: z
+    .string()
+    .url()
+    .max(MAX_TEXT)
+    .refine((url) => VIDEO_URL_PATTERN.test(url), {
+      message: "URL video doit etre YouTube ou Vimeo",
+    })
+    .nullable()
+    .optional(),
   macros: z
     .object({
       kcal: z.coerce.number().min(0).max(99999),
@@ -67,8 +79,13 @@ export const createRecipeSchema = z.object({
   medias: z
     .array(
       z.object({
-        url: z.string().url().max(500)
-          .refine((url) => isAllowedMediaUrl(url), { message: "URL media non autorisee" }),
+        url: z
+          .string()
+          .url()
+          .max(500)
+          .refine((url) => isAllowedMediaUrl(url), {
+            message: "URL media non autorisee",
+          }),
         alt: z.string().max(200).nullable().optional(),
         isPrimary: z.boolean().optional(),
       }),
@@ -83,7 +100,22 @@ export const createCategorySchema = z.object({
   name: z.string().min(1, "Nom requis").max(100),
   slug: z.string().max(100).optional(),
   description: z.string().max(MAX_TEXT).nullable().optional(),
-  icon: z.enum(["utensils", "pizza", "cake", "salad", "soup", "drink", "cookie", "fish", "meat", "bread", "egg", "flame"]).optional(),
+  icon: z
+    .enum([
+      "utensils",
+      "pizza",
+      "cake",
+      "salad",
+      "soup",
+      "drink",
+      "cookie",
+      "fish",
+      "meat",
+      "bread",
+      "egg",
+      "flame",
+    ])
+    .optional(),
   order: z.coerce.number().int().min(0).max(999).optional(),
 });
 

@@ -1,4 +1,6 @@
 import type { Context, Next } from "hono";
+import { db, user as userTable } from "@cooked/db";
+import { eq } from "drizzle-orm";
 import { auth } from "../lib/auth.js";
 import type { AppEnv } from "../lib/types.js";
 
@@ -14,6 +16,18 @@ export async function authMiddleware(c: Context<AppEnv>, next: Next) {
     if (!banExpired) {
       return c.json({ error: "Compte suspendu" }, 403);
     }
+    db.update(userTable)
+      .set({
+        banned: false,
+        banReason: null,
+        banExpires: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(userTable.id, user.id))
+      .then(
+        () => {},
+        () => {},
+      );
   }
   c.set("user", user);
   c.set("session", session.session as AppEnv["Variables"]["session"]);

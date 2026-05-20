@@ -22,18 +22,16 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/admin")) {
-    const secureCookie = request.cookies.get(
-      "__Secure-better-auth.session_token",
-    );
-    const regularCookie = request.cookies.get("better-auth.session_token");
+    const secureCookie = request.cookies.get("__Secure-cooked.session_token");
+    const regularCookie = request.cookies.get("cooked.session_token");
     const token = secureCookie ?? regularCookie;
     if (!token) {
       return NextResponse.redirect(new URL("/compte/connexion", request.url));
     }
 
     const cookieName = secureCookie
-      ? "__Secure-better-auth.session_token"
-      : "better-auth.session_token";
+      ? "__Secure-cooked.session_token"
+      : "cooked.session_token";
 
     try {
       const controller = new AbortController();
