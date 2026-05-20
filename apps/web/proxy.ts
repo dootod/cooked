@@ -36,8 +36,7 @@ export async function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL("/", request.url));
       }
     } catch {
-      // Network error or timeout — let through, client-side layout handles auth
-      return NextResponse.next();
+      return NextResponse.redirect(new URL("/compte/connexion", request.url));
     }
   }
 

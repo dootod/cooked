@@ -97,12 +97,21 @@ app.onError((err, c) => {
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 app.use("/uploads/*", async (c, next) => {
+  if (c.req.path.includes("..")) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Content-Security-Policy", "default-src 'none'; img-src 'self'");
   c.header("Cache-Control", "public, max-age=31536000, immutable");
   await next();
 });
-app.use("/uploads/*", serveStatic({ root: "./" }));
+app.use(
+  "/uploads/*",
+  serveStatic({
+    root: "./uploads",
+    rewriteRequestPath: (p) => p.replace(/^\/uploads/, ""),
+  }),
+);
 
 const authReadLimit = rateLimit({ windowMs: 60_000, max: 120 });
 const authWriteLimit = rateLimit({ windowMs: 60_000, max: 10 });
