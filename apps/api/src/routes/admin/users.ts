@@ -144,7 +144,17 @@ app.patch("/:id", async (c) => {
     .update(user)
     .set({ ...allowed, updatedAt: new Date() })
     .where(eq(user.id, id))
-    .returning();
+    .returning({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      image: user.image,
+      role: user.role,
+      banned: user.banned,
+      banReason: user.banReason,
+      createdAt: user.createdAt,
+    });
 
   if (!updated) return c.json({ error: "Not found" }, 404);
 

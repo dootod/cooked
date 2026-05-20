@@ -2,7 +2,11 @@ import type { MiddlewareHandler } from "hono";
 import { Redis } from "@upstash/redis";
 
 interface RateLimitStore {
-  check(key: string, windowMs: number, max: number): Promise<{ allowed: boolean; retryAfterMs: number }>;
+  check(
+    key: string,
+    windowMs: number,
+    max: number,
+  ): Promise<{ allowed: boolean; retryAfterMs: number }>;
 }
 
 class MemoryStore implements RateLimitStore {
@@ -67,7 +71,10 @@ let sharedStore: RateLimitStore | null = null;
 function getStore(): RateLimitStore {
   if (sharedStore) return sharedStore;
 
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (
+    process.env.UPSTASH_REDIS_REST_URL &&
+    process.env.UPSTASH_REDIS_REST_TOKEN
+  ) {
     const redis = new Redis({
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
@@ -76,7 +83,15 @@ function getStore(): RateLimitStore {
     console.log("[RateLimit] Using Redis store (Upstash)");
   } else {
     sharedStore = new MemoryStore();
-    console.log("[RateLimit] Using in-memory store (set UPSTASH_REDIS_REST_URL + TOKEN for Redis)");
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "[RateLimit] WARNING: Using in-memory store in production — rate limits are not shared across instances. Set UPSTASH_REDIS_REST_URL + TOKEN for Redis.",
+      );
+    } else {
+      console.log(
+        "[RateLimit] Using in-memory store (set UPSTASH_REDIS_REST_URL + TOKEN for Redis)",
+      );
+    }
   }
 
   return sharedStore;
@@ -85,15 +100,28 @@ function getStore(): RateLimitStore {
 export function rateLimit(opts: {
   windowMs: number;
   max: number;
-  keyFn?: (c: { ip: string; userId?: string; method: string; path: string }) => string;
+  keyFn?: (c: {
+    ip: string;
+    userId?: string;
+    method: string;
+    path: string;
+  }) => string;
 }): MiddlewareHandler {
   return async (c, next) => {
     const store = getStore();
     let ip = "unknown";
     if (process.env.TRUST_PROXY === "true") {
-      const forwarded = c.req.header("x-forwarded-for")?.split(",")[0]?.trim();
-      const realIp = c.req.header("x-real-ip");
-      ip = forwarded || realIp || "unknown";
+      const realIp = c.req.header("x-real-ip")?.trim();
+      if (realIp) {
+        ip = realIp;
+      } else {
+        const forwarded = c.req.header("x-forwarded-for");
+        if (forwarded) {
+          const parts = forwarded.split(",").map((s) => s.trim());
+          const proxyCount = Number(process.env.PROXY_COUNT ?? "1");
+          ip = parts[Math.max(0, parts.length - proxyCount)] ?? "unknown";
+        }
+      }
     } else {
       const info = c.req.raw.headers.get("x-real-ip");
       ip = info || "unknown";

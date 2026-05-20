@@ -19,7 +19,10 @@ export async function sendEmail(opts: {
 }) {
   if (!resend) {
     if (process.env.NODE_ENV !== "production") {
-      console.warn("[Email] RESEND_API_KEY not set, skipping email to", maskEmail(opts.to));
+      console.warn(
+        "[Email] RESEND_API_KEY not set, skipping email to",
+        maskEmail(opts.to),
+      );
       console.warn("[Email] Subject:", opts.subject);
     } else {
       console.warn("[Email] RESEND_API_KEY not set, skipping email");
@@ -28,7 +31,12 @@ export async function sendEmail(opts: {
   }
 
   if (process.env.NODE_ENV !== "production") {
-    console.log("[Email] Sending to", maskEmail(opts.to), "subject:", opts.subject);
+    console.log(
+      "[Email] Sending to",
+      maskEmail(opts.to),
+      "subject:",
+      opts.subject,
+    );
   } else {
     console.log("[Email] Sending email, subject:", opts.subject);
   }
@@ -41,7 +49,7 @@ export async function sendEmail(opts: {
   });
 
   if (error) {
-    console.error("[Email] Resend error:", JSON.stringify(error));
+    console.error("[Email] Resend error:", error.name, error.message);
     throw new Error(`Email send failed: ${error.message}`);
   }
 

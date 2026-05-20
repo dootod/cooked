@@ -102,6 +102,7 @@ export const verification = pgTable(
   },
   (t) => [
     index("idx_verification_identifier").on(t.identifier),
+    index("idx_verification_value").on(t.value),
     index("idx_verification_expires_at").on(t.expiresAt),
   ],
 );
