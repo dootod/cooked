@@ -8,8 +8,10 @@ import {
   medias,
   recipesCategories,
   recipesTags,
+  categories,
+  tags,
 } from "@cooked/db";
-import { and, count, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
 import { generateSlug, uniqueSlug } from "../../lib/utils.js";
@@ -27,6 +29,35 @@ async function withTransaction<T>(
   fn: (tx: DbTransaction) => Promise<T>,
 ): Promise<T> {
   return db.transaction(async (tx) => fn(tx));
+}
+
+async function validateRelationIds(
+  categoryIds?: string[],
+  tagIds?: string[],
+): Promise<string | null> {
+  if (categoryIds?.length) {
+    const found = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(inArray(categories.id, categoryIds));
+    if (found.length !== categoryIds.length) {
+      const missing = categoryIds.filter(
+        (id) => !found.some((f) => f.id === id),
+      );
+      return `Categories introuvables: ${missing.join(", ")}`;
+    }
+  }
+  if (tagIds?.length) {
+    const found = await db
+      .select({ id: tags.id })
+      .from(tags)
+      .where(inArray(tags.id, tagIds));
+    if (found.length !== tagIds.length) {
+      const missing = tagIds.filter((id) => !found.some((f) => f.id === id));
+      return `Tags introuvables: ${missing.join(", ")}`;
+    }
+  }
+  return null;
 }
 
 const app = new Hono<AppEnv>();
@@ -129,6 +160,9 @@ app.post("/", async (c) => {
   }
   const body = result.data;
   const currentUser = c.get("user");
+
+  const invalidIds = await validateRelationIds(body.categoryIds, body.tagIds);
+  if (invalidIds) return c.json({ error: invalidIds }, 400);
 
   const baseSlug = body.slug || generateSlug(body.title);
   const slug = await uniqueSlug(baseSlug, async (s) => {
@@ -248,6 +282,9 @@ app.put("/:id", async (c) => {
     );
   }
   const body = result.data;
+
+  const invalidIds = await validateRelationIds(body.categoryIds, body.tagIds);
+  if (invalidIds) return c.json({ error: invalidIds }, 400);
 
   if (body.slug) {
     const existing = await db

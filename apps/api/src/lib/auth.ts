@@ -1,7 +1,14 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, twoFactor } from "better-auth/plugins";
-import { db, user, session, account, verification, twoFactor as twoFactorTable } from "@cooked/db";
+import {
+  db,
+  user,
+  session,
+  account,
+  verification,
+  twoFactor as twoFactorTable,
+} from "@cooked/db";
 import { sendEmail } from "./email.js";
 import { verificationEmail, resetPasswordEmail } from "./email-templates.js";
 
@@ -53,6 +60,9 @@ export const auth = betterAuth({
     admin(),
     twoFactor({
       issuer: "Cooked",
+      backupCodeOptions: {
+        storeBackupCodes: "encrypted",
+      },
     }),
   ],
   databaseHooks: {
@@ -61,7 +71,8 @@ export const auth = betterAuth({
         before: async (user) => {
           const name = (user.name ?? "").trim();
           if (name.length === 0) throw new Error("Nom requis");
-          if (name.length > 100) throw new Error("Nom trop long (100 caracteres max)");
+          if (name.length > 100)
+            throw new Error("Nom trop long (100 caracteres max)");
           return { data: { ...user, name } };
         },
       },
@@ -70,7 +81,8 @@ export const auth = betterAuth({
           if (user.name !== undefined) {
             const name = (user.name as string).trim();
             if (name.length === 0) throw new Error("Nom requis");
-            if (name.length > 100) throw new Error("Nom trop long (100 caracteres max)");
+            if (name.length > 100)
+              throw new Error("Nom trop long (100 caracteres max)");
             return { data: { ...user, name } };
           }
           return { data: user };

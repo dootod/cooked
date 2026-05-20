@@ -20,10 +20,14 @@ export const user = pgTable(
     banReason: text("ban_reason"),
     banExpires: timestamp("ban_expires"),
     twoFactorEnabled: boolean("two_factor_enabled").default(false),
+    deletedAt: timestamp("deleted_at"),
     createdAt: timestamp("created_at").notNull(),
     updatedAt: timestamp("updated_at").notNull(),
   },
-  (t) => [index("idx_user_role").on(t.role)],
+  (t) => [
+    index("idx_user_role").on(t.role),
+    index("idx_user_deleted_at").on(t.deletedAt),
+  ],
 );
 
 export const session = pgTable(

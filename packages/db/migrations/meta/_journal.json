@@ -50,6 +50,13 @@
       "when": 1779214569678,
       "tag": "0006_sudden_queen_noir",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779263049749,
+      "tag": "0007_illegal_terror",
+      "breakpoints": true
     }
   ]
 }

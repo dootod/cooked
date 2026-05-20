@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { z } from "zod";
@@ -49,6 +50,21 @@ const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000")
   .split(",")
   .map((o) => o.trim());
 
+for (const origin of allowedOrigins) {
+  try {
+    const u = new URL(origin);
+    if (u.protocol !== "http:" && u.protocol !== "https:") {
+      throw new Error(`Invalid protocol: ${u.protocol}`);
+    }
+    if (u.hostname.includes("*")) {
+      throw new Error("Wildcard origins not allowed with credentials");
+    }
+  } catch (e) {
+    console.error(`[CORS] Invalid origin "${origin}":`, (e as Error).message);
+    process.exit(1);
+  }
+}
+
 app.use(
   "*",
   cors({
@@ -68,18 +84,20 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-app.use("*", async (c, next) => {
-  const cl = c.req.header("content-length");
-  if (cl) {
-    const limit = c.req.path.startsWith("/api/admin/upload")
-      ? 6 * 1024 * 1024
-      : 1024 * 1024;
-    if (parseInt(cl, 10) > limit) {
-      return c.json({ error: "Payload trop volumineux" }, 413);
-    }
-  }
-  await next();
-});
+app.use(
+  "/api/admin/upload/*",
+  bodyLimit({
+    maxSize: 6 * 1024 * 1024,
+    onError: (c) => c.json({ error: "Payload trop volumineux" }, 413),
+  }),
+);
+app.use(
+  "*",
+  bodyLimit({
+    maxSize: 1024 * 1024,
+    onError: (c) => c.json({ error: "Payload trop volumineux" }, 413),
+  }),
+);
 
 app.onError((err, c) => {
   if (err instanceof SyntaxError) {
@@ -87,7 +105,12 @@ app.onError((err, c) => {
   }
   if (err instanceof z.ZodError) {
     return c.json(
-      { error: "Validation error", details: formatZodErrors(err.issues) },
+      {
+        error: "Validation error",
+        ...(process.env.NODE_ENV !== "production" && {
+          details: formatZodErrors(err.issues),
+        }),
+      },
       400,
     );
   }
@@ -112,6 +135,9 @@ app.use(
     rewriteRequestPath: (p) => p.replace(/^\/uploads/, ""),
   }),
 );
+
+const signUpLimit = rateLimit({ windowMs: 60_000, max: 3 });
+app.post("/api/auth/sign-up/email", signUpLimit);
 
 const authReadLimit = rateLimit({ windowMs: 60_000, max: 120 });
 const authWriteLimit = rateLimit({ windowMs: 60_000, max: 10 });

@@ -1,6 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+const isProd = process.env.NODE_ENV === "production";
+
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    `img-src 'self' data: blob: ${API_URL} https://*.r2.cloudflarestorage.com https://images.unsplash.com`,
+    `connect-src 'self' ${API_URL}`,
+    "frame-src https://www.youtube.com https://player.vimeo.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -40,9 +56,26 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
+
+  if (isProd) {
+    response.headers.set("Content-Security-Policy", buildCsp(nonce));
+  } else {
+    response.headers.set(
+      "Content-Security-Policy-Report-Only",
+      buildCsp(nonce),
+    );
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon\\.ico).*)"],
 };

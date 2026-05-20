@@ -1,9 +1,12 @@
 import { Hono } from "hono";
 import { db, user, session } from "@cooked/db";
-import { eq, count, desc } from "drizzle-orm";
+import { eq, count, desc, isNull } from "drizzle-orm";
 import { authMiddleware } from "../../middleware/auth.js";
 import { adminMiddleware } from "../../middleware/admin.js";
-import { userPatchSchema, adminPaginationSchema } from "../../lib/validation.js";
+import {
+  userPatchSchema,
+  adminPaginationSchema,
+} from "../../lib/validation.js";
 import { logAudit } from "../../lib/audit.js";
 import type { AppEnv } from "../../lib/types.js";
 
@@ -29,7 +32,10 @@ app.get("/", async (c) => {
   const query = adminPaginationSchema.parse(c.req.query());
   const offset = (query.page - 1) * query.limit;
 
-  const [totalResult] = await db.select({ count: count() }).from(user);
+  const [totalResult] = await db
+    .select({ count: count() })
+    .from(user)
+    .where(isNull(user.deletedAt));
   const rows = await db
     .select({
       id: user.id,
@@ -43,6 +49,7 @@ app.get("/", async (c) => {
       createdAt: user.createdAt,
     })
     .from(user)
+    .where(isNull(user.deletedAt))
     .orderBy(desc(user.createdAt))
     .limit(query.limit)
     .offset(offset);
@@ -63,15 +70,26 @@ app.delete("/:id", async (c) => {
   const currentUser = c.get("user");
 
   if (id === currentUser.id) {
-    return c.json({ error: "Impossible de supprimer votre propre compte" }, 400);
+    return c.json(
+      { error: "Impossible de supprimer votre propre compte" },
+      400,
+    );
   }
 
   const [deleted] = await db
-    .delete(user)
+    .update(user)
+    .set({
+      deletedAt: new Date(),
+      banned: true,
+      banReason: "Compte supprime",
+      updatedAt: new Date(),
+    })
     .where(eq(user.id, id))
     .returning({ id: user.id });
 
   if (!deleted) return c.json({ error: "Not found" }, 404);
+
+  await revokeUserSessions(id);
 
   await logAudit({
     userId: currentUser.id,
@@ -89,12 +107,22 @@ app.patch("/:id", async (c) => {
   const raw = await c.req.json();
   const result = userPatchSchema.safeParse(raw);
   if (!result.success) {
-    return c.json({ error: "Validation error", details: result.error.issues }, 400);
+    return c.json(
+      { error: "Validation error", details: result.error.issues },
+      400,
+    );
   }
   const body = result.data;
 
-  if (body.role !== undefined && body.role !== "admin" && id === currentUser.id) {
-    return c.json({ error: "Impossible de retirer votre propre role admin" }, 400);
+  if (
+    body.role !== undefined &&
+    body.role !== "admin" &&
+    id === currentUser.id
+  ) {
+    return c.json(
+      { error: "Impossible de retirer votre propre role admin" },
+      400,
+    );
   }
 
   if (body.banned === true && id === currentUser.id) {
