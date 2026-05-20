@@ -186,6 +186,37 @@ body {
   }
 }
 
+@keyframes admin-bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.admin-bar-fill {
+  transform-origin: left;
+  animation: admin-bar-fill 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes admin-heartbeat-draw {
+  0% {
+    stroke-dashoffset: 400;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -400;
+  }
+}
+
+.admin-heartbeat {
+  stroke-dasharray: 400;
+  animation: admin-heartbeat-draw 4s ease-in-out infinite;
+}
+
 /* Public pages */
 @keyframes public-float {
   0%,
